@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endurance CTSS Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Endurance CTSS Calculator</h1>
+    </div>
+    <div class="return-menu">
+        <a href="index.html" class="menu-button">
+            <i class="fas fa-arrow-left"></i> Return to Menu
+        </a>
+    </div>
+    <form id="endurance-form">
+        <h2>Endurance CTSS</h2>
+        <div class="form-container">
+            <div class="input-section">
+                <label for="endurance-grade">YDS Grade:</label>
+                <select id="endurance-grade" required>
+                    <option value="">Select grade</option>
+                    <option value="6">5.10-</option>
+                    <option value="7">5.10+</option>
+                    <option value="8">5.11-</option>
+                    <option value="9">5.11+</option>
+                    <option value="10">5.12-</option>
+                    <option value="11">5.12+</option>
+                    <option value="12">5.13-</option>
+                    <option value="13">5.13+</option>
+                    <option value="14">5.14-</option>
+                    <option value="15">5.14+</option>
+                </select>
+
+                <label for="endurance-duration">Duration (minutes):</label>
+                <input type="number" id="endurance-duration" min="1" max="120" required>
+
+                <button type="button" onclick="addEndurance()">
+                    <i class="fas fa-plus"></i> Add Route
+                </button>
+                <button type="button" onclick="undoEndurance()">
+                    <i class="fas fa-undo"></i> Undo Route
+                </button>
+                <button type="button" onclick="clearEndurance()">
+                    <i class="fas fa-trash-alt"></i> Clear Routes
+                </button>
+                <button type="button" onclick="submitEnduranceSession()">
+                    <i class="fas fa-save"></i> Submit Session
+                </button>
+
+                <table id="endurance-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Grade</th>
+                            <th>Duration (min)</th>
+                            <th>CTSS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="added-endurance"></tbody>
+                </table>
+            </div>
+            <div class="score-section">
+                <h3>Endurance CTSS Score:</h3>
+                <div id="endurance-score" class="score">0</div>
+            </div>
+        </div>
+    </form>
+    <canvas id="ctssChart"></canvas>
+    <script src="endurance.js"></script>
+</body>
+</html>

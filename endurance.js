@@ -68,8 +68,10 @@ function updateEnduranceTable() {
 }
 
 function submitEnduranceSession() {
+    const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     const sessionData = {
         type: 'endurance',
+        date: currentDate,
         totalCTSS: calculateEnduranceSessionCTSS(),
         routes: enduranceRoutes
     };
@@ -85,6 +87,7 @@ function submitEnduranceSession() {
     .then(data => {
         console.log('Success:', data);
         alert('Endurance session submitted successfully!');
+        fetchHistoricalData('endurance');
     })
     .catch((error) => {
         console.error('Error:', error);
@@ -100,3 +103,37 @@ function getYDSGrade(value) {
     return grades[value] || "Unknown";
 }
 
+function fetchHistoricalData(sessionType) {
+    fetch(`/api/historical-data/${sessionType}`)
+        .then(response => response.json())
+        .then(data => createChart(data))
+        .catch(error => console.error('Error fetching historical data:', error));
+}
+
+function createChart(data) {
+    const ctx = document.getElementById('ctssChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.map(item => item.date),
+            datasets: [{
+                label: 'CTSS Score',
+                data: data.map(item => item.totalCTSS),
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetchHistoricalData('endurance');
+});

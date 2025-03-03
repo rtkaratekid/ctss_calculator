@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hangboard CTSS Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Hangboard CTSS Calculator</h1>
+    </div>
+    <div class="return-menu">
+        <a href="index.html" class="menu-button">
+            <i class="fas fa-arrow-left"></i> Return to Menu
+        </a>
+    </div>
+    <form id="hangboard-form">
+        <h2>Hangboard CTSS</h2>
+        <div class="form-container">
+            <div class="input-section">
+
+                <label for="hangboard-grip">Grip Type:</label>
+                <select id="hangboard-grip" required>
+                    <option value="">Select grip</option>
+                    <option value="20mm_half_crimp">20mm Half Crimp</option>
+                    <option value="20mm_imr_half_crimp">20mm IMR Half Crimp</option>
+                    <option value="20mm_mrp_half_crimp">20mm MRP Half Crimp</option>
+                    <option value="full_crimp">Full Crimp</option>
+                    <option value="20mm_chisel">20mm Chisel</option>
+                    <option value="deep_2finger_pocket">Deep 2-Finger Pocket</option>
+                    <option value="shallow_2finger_pocket">Shallow 2-Finger Pocket</option>
+                    <option value="sloper">Sloper</option>
+                    <option value="wide_pinch">Wide Pinch</option>
+                    <option value="medium_pinch">Medium Pinch</option>
+                    <option value="narrow_pinch">Narrow Pinch</option>
+                </select>
+
+
+                <label for="hangboard-weight">Total Weight Hung (including bodyweight)</label>
+                <input type="number" id="hangboard-weight" min="100" max="300" required>
+
+                <label for="hangboard-reps">Reps:</label>
+                <input type="number" id="hangboard-reps" min="1" max="50" required>
+
+                <button type="button" onclick="addHangboard()">
+                    <i class="fas fa-plus"></i> Add New Hang
+                </button>
+                <button type="button" onclick="undoHangboard()">
+                    <i class="fas fa-undo"></i> Undo Hang
+                </button>
+                <button type="button" onclick="clearHangboard()">
+                    <i class="fas fa-trash-alt"></i> Clear All Hangs
+                </button>
+                <button type="button" onclick="submitHangboardSession()">
+                    <i class="fas fa-save"></i> Submit Session
+                </button>
+
+                <table id="hangboard-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Grip</th>
+                            <th>Weight</th>
+                            <th>Reps</th>
+                            <th>CTSS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="added-hangboard"></tbody>
+                </table>
+            </div>
+            <div class="score-section">
+                <h3>Hangboard CTSS Score:</h3>
+                <div id="hangboard-score" class="score">0</div>
+            </div>
+        </div>
+    </form>
+    <canvas id="ctssChart"></canvas>
+    <script src="hangboard.js"></script>
+</body>
+</html>
