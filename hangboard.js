@@ -25,7 +25,8 @@ function addHangboard() {
         `;
         document.getElementById('added-hangboard').append(newRow);
 
-        calculateHangboardSessionCTSS();
+        let sessionCtss = calculateHangboardSessionCTSS();
+        document.getElementById('hangboard-score').textContent = sessionCtss;
     }
 }
 
@@ -34,8 +35,7 @@ function calculateHangboardCTSS(hang) {
 }
 
 function calculateHangboardSessionCTSS() {
-    const sessionCTSS = hangboardHangs.reduce((sum, hang) => sum + hang.ctss, 0);
-    document.getElementById('hangboard-score').textContent = sessionCTSS;
+    return hangboardHangs.reduce((sum, hang) => sum + hang.ctss, 0);
 }
 
 function clearHangboard() {
@@ -74,8 +74,8 @@ function updateHangboardTable() {
 function submitHangboardSession() {
     const sessionData = {
         type: 'hangboard',
-        hangs: hangboardHangs,
-        totalCTSS: calculateHangboardSessionCTSS()
+        totalCTSS: calculateHangboardSessionCTSS(),
+        hangs: hangboardHangs
     };
 
     // TODO make this endpoint

@@ -23,7 +23,8 @@ function addEndurance() {
         `;
         document.getElementById('added-endurance').append(newRow);
 
-        calculateEnduranceSessionCTSS();
+        let sessionCtss = calculateEnduranceSessionCTSS();
+        document.getElementById('endurance-score').textContent = sessionCtss;
     }
 }
 
@@ -32,8 +33,7 @@ function calculateEnduranceCTSS(route) {
 }
 
 function calculateEnduranceSessionCTSS() {
-    const sessionCTSS = enduranceRoutes.reduce((sum, route) => sum + route.ctss, 0);
-    document.getElementById('endurance-score').textContent = sessionCTSS;
+    return enduranceRoutes.reduce((sum, route) => sum + route.ctss, 0);
 }
 
 function clearEndurance() {
@@ -70,8 +70,8 @@ function updateEnduranceTable() {
 function submitEnduranceSession() {
     const sessionData = {
         type: 'endurance',
-        routes: enduranceRoutes,
-        totalCTSS: calculateEnduranceSessionCTSS()
+        totalCTSS: calculateEnduranceSessionCTSS(),
+        routes: enduranceRoutes
     };
 
     fetch('/api/submit-session', {

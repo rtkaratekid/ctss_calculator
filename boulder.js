@@ -23,18 +23,17 @@ function addBoulder() {
         `;
         document.getElementById('added-boulders').append(newRow);
 
-        calculateBoulderSessionCTSS();
+        let sessionCtss = calculateBoulderSessionCTSS();
+        document.getElementById('bouldering-score').textContent = sessionCtss;
     }
 }
 
 function calculateBoulderCTSS(boulder) {
     return (boulder.grade + 1) * boulder.attempts;
-    //return Math.round((((problemScore * 1.4 + boulder.attempts * (boulder.rpe * 1.5)) / 526.5) * 100));
 }
 
 function calculateBoulderSessionCTSS() {
-    const sessionCTSS = boulders.reduce((sum, boulder) => sum + boulder.ctss, 0);
-    document.getElementById('bouldering-score').textContent = sessionCTSS;
+    return boulders.reduce((sum, boulder) => sum + boulder.ctss, 0);
 }
 
 function clearBoulders() {
@@ -72,9 +71,11 @@ function updateBoulderTable() {
 function submitBoulderingSession() {
     const sessionData = {
         type: 'bouldering',
-        boulders: boulders,
-        totalCTSS: calculateBoulderSessionCTSS()
+        totalCTSS: Number(calculateBoulderSessionCTSS()),
+        boulders: boulders
     };
+
+    console.log('Sending session data:', sessionData);
 
     fetch('/api/submit-session', {
         method: 'POST',
