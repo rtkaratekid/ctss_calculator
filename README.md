@@ -11,7 +11,13 @@ The CTSS Calculator is a simple tool designed to help users calculate their Clim
 
 ## Usage
 
-Follow the on-screen instructions to input your workout data and receive your CTSS.
+*Requires python3 and flask*
+Spin up the server
+```sh
+python3 server.py
+```
+
+Access the site in your browser at localhost:5000
 
 ## Contributing
 
