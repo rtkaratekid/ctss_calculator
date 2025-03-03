@@ -11,7 +11,7 @@ body {
     background: linear-gradient(to right, #1a2a3a, #2980b9);
     color: white;
     padding: 15px 0;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     text-align: center;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -195,8 +195,8 @@ tr:hover {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-top: 20px;
-    min-height: calc(100vh - 200px);
+    margin-top: 10px;
+    min-height: calc(100vh - 600px);
 }
 
 .menu-item {
