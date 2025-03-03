@@ -6,20 +6,18 @@
     <title>Bouldering CTSS Calculator</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="darkMode.js"></script>
 </head>
 <body>
     <div class="header">
         <h1>Bouldering CTSS Calculator</h1>
     </div>
-    <div class="return-menu">
-        <a href="index.html" class="menu-button">
-            <i class="fas fa-arrow-left"></i> Return to Menu
-        </a>
-    </div>
+    <a href="index.html" class="fab menu-button">
+        <i class="fas fa-home"></i>
+    </a>
     <form id="bouldering-form">
-        <h2>Bouldering CTSS</h2>
         <div class="form-container">
             <div class="input-section">
                 <label for="boulder-grade">V Grade:</label>
@@ -79,7 +77,9 @@
             </div>
         </div>
     </form>
-    <canvas id="ctssChart"></canvas>
+    <div style="height: 300px;">
+        <canvas id="ctssChart"></canvas>
+    </div>
     <script src="boulder.js"></script>
 </body>
 </html>

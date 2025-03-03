@@ -6,41 +6,29 @@ body {
     background-color: #f5f5f5;
     color: #333;
 }
-/* .header {
-    background: linear-gradient(to right, #2c3e50, #3498db);
-    color: white;
-    padding: 20px 0;
-    margin-bottom: 30px;
-    text-align: center;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-} */
+
 .header {
     background: linear-gradient(to right, #1a2a3a, #2980b9);
     color: white;
-    padding: 20px 0;
-    margin-bottom: 30px;
+    padding: 15px 0;
+    margin-bottom: 20px;
     text-align: center;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
 .header h1 {
     color: white;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     margin: 0;
-    font-size: 2.5em;
+    font-size: 2.2em;
     font-weight: 700;
 }
-/* .header p {
-    margin: 10px 0 0;
-    font-size: 1.2em;
-    font-weight: 400;
-    opacity: 0.8;
-} */
+
 .header p {
     color: rgba(255, 255, 255, 0.8);  /* This makes the subtitle slightly transparent white */
     margin: 10px 0 0;
-    font-size: 1.2em;
+    font-size: 1.1em;
     font-weight: 400;
 }
 h1 {
@@ -206,19 +194,23 @@ tr:hover {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 50px;
+    justify-content: center;
+    margin-top: 20px;
+    min-height: calc(100vh - 200px);
 }
 
 .menu-item {
     display: flex;
     align-items: center;
+    justify-content: center;
     text-decoration: none;
     color: #2c3e50;
-    padding: 20px;
-    margin: 10px 0;
+    padding: 25px;
+    margin: 5px 0;
     border-radius: 8px;
     transition: all 0.3s ease;
-    width: 250px;
+    width: 300px;
+    text-align: center;
 }
 
 .menu-item:hover {
@@ -227,12 +219,12 @@ tr:hover {
 }
 
 .menu-item i {
-    font-size: 24px;
-    margin-right: 15px;
+    font-size: 36px;
+    margin-right: 20px;
 }
 
 .menu-item span {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
 }
 
@@ -257,4 +249,202 @@ tr:hover {
 
 .menu-button i {
     margin-right: 10px;
+}
+
+body.dark-mode {
+    background-color: #0f0e17;
+    color: #fffffe;
+}
+
+.dark-mode .header {
+    background: linear-gradient(to right, #3a0ca3, #7209b7);
+    color: #fffffe;
+    padding: 15px 0;
+    margin-bottom: 20px;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode h2 {
+    color: #ff6ad5;
+}
+
+.dark-mode label {
+    color: #a7a9be;
+}
+
+.dark-mode table {
+    background-color: #1e1e2e;
+    color: #fffffe;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.dark-mode .menu-button,
+.dark-mode button {
+    background-color: #6b46c1;
+    color: #fffffe;
+    border: none;
+    box-shadow: 0 2px 4px rgba(242, 95, 76, 0.3);
+}
+
+.dark-mode .menu-button:hover,
+.dark-mode button:hover {
+    background-color: #805ad5;
+}
+
+.dark-mode .menu-item,
+.dark-mode form {
+    background-color: #1e1e2e;
+    color: #fffffe;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode input,
+.dark-mode select {
+    background-color: #2e2e3e;
+    color: #fffffe;
+    border-color: #4e4e5e;
+}
+
+.dark-mode th,
+.dark-mode td {
+    border: 1px solid #4e4e5e;
+}
+
+.dark-mode th {
+    background-color: #2e2e3e;
+    color: #ff6ad5;
+}
+
+.dark-mode tr:nth-child(even) {
+    background-color: #2a2a3a;
+}
+
+.dark-mode tr:hover {
+    background-color: #3a3a4a;
+}
+
+.dark-mode input:focus,
+.dark-mode select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #6b46c1;
+}
+
+.dark-mode .score-section {
+    background-color: #1e1e2e;
+    color: #fffffe;
+}
+
+.dark-mode .score {
+    color: #ff6ad5;
+}
+
+.dark-mode table,
+.dark-mode th,
+.dark-mode td,
+.dark-mode table a {
+    color: #fffffe;
+}
+
+.dark-mode table a:hover {
+    color: #ff6ad5;
+}
+
+/* Smooth transition for mode switch */
+body, .header, .menu-item, form, input, select, table, th, tr {
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .header h1 {
+        font-size: 2em;
+    }
+
+    .header p {
+        font-size: 1em;
+    }
+
+    .menu-item {
+        width: 90%;
+        max-width: 300px;
+    }
+
+    form {
+        padding: 15px;
+    }
+
+    input, select {
+        width: 100%;
+    }
+
+    .form-container {
+        flex-direction: column;
+    }
+
+    .input-section, .score-section {
+        width: 100%;
+    }
+
+    .score-section {
+        margin-top: 20px;
+    }
+
+    table {
+        font-size: 14px;
+    }
+
+    button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    /* Touch-friendly adjustments */
+    button, .menu-button, .menu-item {
+        min-height: 44px; /* Minimum touch target size */
+        margin-bottom: 10px; /* Space between buttons */
+    }
+
+    input[type="number"], select {
+        height: 44px; /* Larger touch target for inputs */
+        font-size: 16px; /* Prevents iOS from zooming in on focus */
+    }
+
+    table td, table th {
+        padding: 12px 8px; /* Larger touch targets in tables */
+    }
+
+}
+
+.fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.fab i {
+    font-size: 24px; /* Adjust this value as needed */
+    line-height: 1; /* Ensures vertical centering */
+    margin: 0; /* Remove any default margin */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%; /* Ensure the icon takes the full height of the FAB */
 }

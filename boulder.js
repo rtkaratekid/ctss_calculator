@@ -110,6 +110,7 @@ function fetchHistoricalData(sessionType) {
 }
 
 function createChart(data) {
+    const isDarkMode = document.body.classList.contains('dark-mode');
     const ctx = document.getElementById('ctssChart').getContext('2d');
     new Chart(ctx, {
         type: 'line',
@@ -118,15 +119,37 @@ function createChart(data) {
             datasets: [{
                 label: 'CTSS Score',
                 data: data.map(item => item.totalCTSS),
-                borderColor: 'rgb(75, 192, 192)',
+                borderColor: isDarkMode ? '#ff6ad5' : 'rgb(75, 192, 192)', // Synthy pink in dark mode
+                backgroundColor: isDarkMode ? 'rgba(255, 106, 213, 0.1)' : 'rgba(75, 192, 192, 0.1)',
                 tension: 0.1
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: isDarkMode ? '#fffffe' : '#333333'
+                    }
+                }
+            },
             scales: {
+                x: {
+                    grid: {
+                        color: isDarkMode ? '#4e4e5e' : '#e0e0e0'
+                    },
+                    ticks: {
+                        color: isDarkMode ? '#fffffe' : '#333333'
+                    }
+                },
                 y: {
-                    beginAtZero: true
+                    grid: {
+                        color: isDarkMode ? '#4e4e5e' : '#e0e0e0'
+                    },
+                    ticks: {
+                        color: isDarkMode ? '#fffffe' : '#333333'
+                    }
                 }
             }
         }
