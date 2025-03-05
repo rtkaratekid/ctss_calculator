@@ -14,6 +14,8 @@
         <h1>Climbing Training Stress Score Calculator</h1>
         <p>Choose your session</p>
     </div>
+    <!-- TODO add some charts and stuff so you can see trends over time -->
+    <!-- TODO make the TSB cell red or green on a gradient depending on readiness -->
     <div id="training-load-container"></div>
     <div class="menu-container">
         <a href="bouldering.html" class="menu-item">
@@ -33,7 +35,6 @@
             <span>Toggle Dark Mode</span>
         </a>
     </div>
-    <!-- <script src="../static/training_load.js"></script> -->
     <script src="{{ url_for('static', filename='training_load.js') }}"></script>
     <script>
         document.getElementById('darkModeToggle').addEventListener('click', function() {

@@ -198,6 +198,7 @@ function fetchCurrentTrainingLoad() {
         });
 }
 
+// TODO calculate training load for current day if the day before there was no training
 async function calculateTrainingLoad() {
     try {
         let dailyStress = await calculateDailyStress();
