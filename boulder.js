@@ -3,12 +3,21 @@
 /********************************/
 
 let boulders = [];
+let maxBoulderGrade = 0;
+let sessionDuration = 0;
 
 function addBoulder() {
+    maxBoulderGrade = parseInt(document.getElementById('max-boulder-grade').value);
+    sessionDuration = parseInt(document.getElementById('session-duration').value);
     const grade = parseInt(document.getElementById('boulder-grade').value);
     const attempts = parseInt(document.getElementById('boulder-attempts').value);
 
-    if (!isNaN(grade) && !isNaN(attempts)) {
+    if (!isNaN(grade) && !isNaN(attempts) && !isNaN(maxBoulderGrade) && !isNaN(sessionDuration)) {
+        if (grade < 0 || grade > maxBoulderGrade) {
+            alert('Boulder grade must be between 0 and the maximum grade.');
+            return;
+        }
+
         const boulder = { grade, attempts };
         boulder.ctss = calculateBoulderCTSS(boulder);
         boulders.push(boulder);
@@ -19,7 +28,7 @@ function addBoulder() {
             <td>${boulders.length}</td>
             <td>V${grade}</td>
             <td>${attempts}</td>
-            <td>${boulder.ctss}</td>
+            <td>${boulder.ctss.toFixed(3)}</td>
         `;
         document.getElementById('added-boulders').append(newRow);
 
@@ -29,11 +38,18 @@ function addBoulder() {
 }
 
 function calculateBoulderCTSS(boulder) {
-    return (boulder.grade + 1) * boulder.attempts;
+    let relative_intensity = (boulder.grade + 1) / (maxBoulderGrade + 1);
+    let scaled_intensity = Math.pow(relative_intensity, 2);
+    let ctss = boulder.attempts * scaled_intensity;
+    return ctss;
 }
 
 function calculateBoulderSessionCTSS() {
-    return boulders.reduce((sum, boulder) => sum + boulder.ctss, 0);
+    let total_attempts = boulders.reduce((sum, boulder) => sum + boulder.attempts, 0);
+    let density = total_attempts / (sessionDuration / 60);
+    let intensity_sum = boulders.reduce((sum, boulder) => sum + boulder.ctss, 0);
+    let session_ctss = intensity_sum * density;
+    return Number(session_ctss.toFixed(1));
 }
 
 function clearBoulders() {

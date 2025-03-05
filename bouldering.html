@@ -20,6 +20,30 @@
     <form id="bouldering-form">
         <div class="form-container">
             <div class="input-section">
+                <label for="max-boulder-grade">Max Boulder V Grade:</label>
+                <select id="max-boulder-grade" required>
+                    <option value="">Select grade</option>
+                    <option value="0">V0</option>
+                    <option value="1">V1</option>
+                    <option value="2">V2</option>
+                    <option value="3">V3</option>
+                    <option value="4">V4</option>
+                    <option value="5">V5</option>
+                    <option value="6">V6</option>
+                    <option value="7">V7</option>
+                    <option value="8">V8</option>
+                    <option value="9">V9</option>
+                    <option value="10">V10</option>
+                    <option value="11">V11</option>
+                    <option value="12">V12</option>
+                    <option value="13">V13</option>
+                    <option value="14">V14</option>
+                    <option value="15">V15</option>
+                </select>
+
+                <label for="session-duration">Session Duration (mins):</label>
+                <input type="number" id="session-duration" min="10" max="240" required>
+
                 <label for="boulder-grade">V Grade:</label>
                 <select id="boulder-grade" required>
                     <option value="">Select grade</option>
