@@ -53,15 +53,13 @@ def submit_training_load():
 @app.route('/api/get-current-training-load')
 def get_current_training_load():
     filename = 'data/training_load.jsonl'
-    training_load = {}
+    date = datetime.datetime.now().strftime('%Y-%m-%d')
+    training_load = {'date': date, 'daily_stress': 0, 'ctl': 0, 'atl': 0, 'tsb': 0}
 
     if os.path.exists(filename):
         with open(filename, 'r') as f:
             for line in f:
                 training_load = json.loads(line)
-    else:
-        date = datetime.datetime.now().strftime('%Y-%m-%d')
-        training_load = {'date': date, 'daily_stress': 0, 'ctl': 0, 'atl': 0, 'tsb': 0}
     
     return jsonify(training_load)
 
