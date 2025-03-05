@@ -112,6 +112,8 @@ function submitBoulderingSession() {
         console.error('Error:', error);
         alert('Error submitting bouldering session. Please try again.');
     });
+    
+    calculateTrainingLoad();
 }
 
 document.addEventListener('DOMContentLoaded', function() {

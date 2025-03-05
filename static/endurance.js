@@ -3,10 +3,14 @@
 /********************************/
 
 let enduranceRoutes = [];
+let maxGrade = 0;
+let sessionDuration = 0; // minutes
 
 function addEndurance() {
     const gradeValue = parseInt(document.getElementById('endurance-grade').value);
     const duration = parseInt(document.getElementById('endurance-duration').value);
+    maxGrade = parseInt(document.getElementById('max-endurance-grade').value);
+    sessionDuration = parseInt(document.getElementById('session-duration').value);
 
     if (!isNaN(gradeValue) && !isNaN(duration)) {
         const route = { gradeValue, duration };
@@ -29,11 +33,14 @@ function addEndurance() {
 }
 
 function calculateEnduranceCTSS(route) {
-    return Math.round((route.gradeValue * 0.4 + route.duration * 0.5));
+    return Math.pow((route.gradeValue) / (maxGrade), 2) * route.duration;
 }
 
 function calculateEnduranceSessionCTSS() {
-    return enduranceRoutes.reduce((sum, route) => sum + route.ctss, 0);
+    let volume = enduranceRoutes.reduce((sum, route) => sum + route.ctss, 0);
+    let totalDuration = enduranceRoutes.reduce((sum, route) => sum + route.duration, 0);
+    let density = totalDuration / sessionDuration;
+    return volume * density;
 }
 
 function clearEndurance() {
@@ -93,6 +100,8 @@ function submitEnduranceSession() {
         console.error('Error:', error);
         alert('Error submitting endurance session. Please try again.');
     });
+
+    calculateTrainingLoad();
 }
 
 function getYDSGrade(value) {

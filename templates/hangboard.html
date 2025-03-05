@@ -21,6 +21,9 @@
         <div class="form-container">
             <div class="input-section">
 
+                <label for="session-duration">Session Duration (minutes)</label>
+                <input type="number" id="session-duration" min="1" max="120" required>
+
                 <label for="hangboard-grip">Grip Type:</label>
                 <select id="hangboard-grip" required>
                     <option value="">Select grip</option>
@@ -37,12 +40,14 @@
                     <option value="narrow_pinch">Narrow Pinch</option>
                 </select>
 
-
-                <label for="hangboard-weight">Total Weight Hung (including bodyweight)</label>
-                <input type="number" id="hangboard-weight" min="100" max="300" required>
+                <label for="hangboard-rel-intensity">Intensity (% relative to max)</label>
+                <input type="number" id="hangboard-rel-intensity" min="50" max="100" required>
 
                 <label for="hangboard-reps">Reps:</label>
                 <input type="number" id="hangboard-reps" min="1" max="50" required>
+
+                <label for="hangboard-tut">Hang Duration (seconds)</label>
+                <input type="number" id="hangboard-tut" min="1" max="120" required>
 
                 <button type="button" onclick="addHangboard()">
                     <i class="fas fa-plus"></i> Add New Hang
@@ -62,9 +67,9 @@
                         <tr>
                             <th>#</th>
                             <th>Grip</th>
-                            <th>Weight</th>
-                            <th>Reps</th>
-                            <th>CTSS</th>
+                            <th>Intensity</th>
+                            <th>Hang Duration</th>
+                            <th>HTSS</th>
                         </tr>
                     </thead>
                     <tbody id="added-hangboard"></tbody>
@@ -80,5 +85,6 @@
         <canvas id="ctssChart"></canvas>
     </div>
     <script src="hangboard.js"></script>
+    <script src="{{ url_for('static', filename='training_load.js') }}"></script>
 </body>
 </html>

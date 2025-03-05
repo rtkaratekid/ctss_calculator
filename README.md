@@ -2,7 +2,7 @@
 
 The CTSS Calculator is a simple tool designed to help users calculate their Climbing Training Stress Score (CTSS)
 
-![CTSS Calculator Preview](preview.png)
+![CTSS Calculator Preview](static/preview.png)
 
 ## Features
 

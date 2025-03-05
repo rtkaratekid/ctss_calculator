@@ -3,14 +3,19 @@
 /********************************/
 
 let hangboardHangs = [];
+let sessionDuration = 0; // in minutes
 
 function addHangboard() {
     const grip = document.getElementById('hangboard-grip').value;
-    const weight = parseInt(document.getElementById('hangboard-weight').value)
+    const relIntensity = parseFloat(document.getElementById('hangboard-rel-intensity').value);
+    const tutPerHang = parseFloat(document.getElementById('hangboard-tut').value);
+    // const weight = parseInt(document.getElementById('hangboard-weight').value)
     const reps = parseInt(document.getElementById('hangboard-reps').value);
+    const sessionDuration = parseInt(document.getElementById('session-duration').value);
 
     if (!isNaN(reps) && !isNaN(weight)) {
-        const hang = { grip, weight, reps };
+        const tutPerSet = (tutPerHang / 60) * reps; // Convert seconds to minutes
+        const hang = { grip, relIntensity, reps, tutPerHang, tutPerSet };
         hang.ctss = calculateHangboardCTSS(hang);
         hangboardHangs.push(hang);
 
@@ -19,23 +24,29 @@ function addHangboard() {
         newRow.innerHTML = `
             <td>${hangboardHangs.length}</td>
             <td>${grip}</td>
-            <td>${weight}</td>
-            <td>${reps}</td>
-            <td>${hang.ctss}</td>
+            <td>${relIntensity}%</td>
+            <td>${tutPerSet}</td>
+            <td>${hang.ctss.toFixed(2)}</td>
         `;
         document.getElementById('added-hangboard').append(newRow);
 
         let sessionCtss = calculateHangboardSessionCTSS();
-        document.getElementById('hangboard-score').textContent = sessionCtss;
+        document.getElementById('hangboard-score').textContent = sessionCtss.toFixed(2);
     }
 }
 
-function calculateHangboardCTSS(hang) {
-    return Math.round((hang.weight * 0.9) * (hang.reps * 0.1));
+function calculateHangboardCtssSet(hang) {
+    return Math.pow(hang.relIntensity, 2) * hang.tutPerSet;
 }
 
 function calculateHangboardSessionCTSS() {
-    return hangboardHangs.reduce((sum, hang) => sum + hang.ctss, 0);
+    let scalingFactor = 2.5;
+    let volume = hangboardHangs.reduce((sum, hang) => sum + hang.ctss, 0);
+    let totalTutSeconds = hangboardHangs.reduce((sum, hang) => sum + (hang.reps * hang.length), 0);
+    let totalTutMinutes = totalTutSeconds / 60;
+    let density = totalTutMinutes / sessionDuration;
+    let hCss = volume * density * scalingFactor;
+    return Math.round(hCss);
 }
 
 function clearHangboard() {
@@ -80,7 +91,6 @@ function submitHangboardSession() {
         hangs: hangboardHangs
     };
 
-    // TODO make this endpoint
     fetch('/api/submit-session', {
         method: 'POST',
         headers: {
@@ -98,6 +108,8 @@ function submitHangboardSession() {
         console.error('Error:', error);
         alert('Error submitting session. Please try again.');
     });
+
+    calculateTrainingLoad();
 }
 
 
