@@ -20,6 +20,7 @@ The CTSS Calculator is a simple tool designed to help users calculate their Clim
 - Time under tension per set is in minutes
 - Total session time under tension is in minutes
 - Total session time is in hours (maybe should be minutes?)
+- scaling factor is currently 2.5 because I thought that seemed reasonable
 
 ## Features
 
