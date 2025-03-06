@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTSS Calculator | Climbing Training Stress Score</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <!-- <link rel="stylesheet" href="styles.css"> -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
 </head>
 <body>
     <div class="header">
@@ -34,6 +36,9 @@
             <i class="fas fa-moon"></i>
             <span>Toggle Dark Mode</span>
         </a>
+    </div>
+    <div style="height: 300px;">
+        <canvas id="ctl-chart"></canvas>
     </div>
     <script src="{{ url_for('static', filename='training_load.js') }}"></script>
     <script>

@@ -127,20 +127,34 @@ def get_hctss():
 
 @app.route('/api/historical-data/<session_type>')
 def get_historical_data(session_type):
-    if session_type not in ['bouldering', 'endurance', 'hangboard']:
+    if session_type not in ['bouldering', 'endurance', 'hangboard', 'training_load']:
         return {'error': 'Invalid session type'}, 400
 
-    filename = f'data/{session_type}_sessions.jsonl'
     historical_data = []
 
-    if os.path.exists(filename):
-        with open(filename, 'r') as f:
+    filename = ''
+    if session_type == 'training_load':
+        filename = 'data/training_load.jsonl'
+        with open(filename) as f:
             for line in f:
-                session = json.loads(line)
+                training_load = json.loads(line)
                 historical_data.append({
-                    'date': session.get('date'),
-                    'totalCTSS': session.get('totalCTSS')
+                    'date': training_load.get('date'),
+                    'daily_stress': training_load.get('daily_stress'),
+                    'ctl': training_load.get('ctl'),
+                    'atl': training_load.get('atl'),
+                    'tsb': training_load.get('tsb')
                 })
+    else:
+        filename = f'data/{session_type}_sessions.jsonl'
+        if os.path.exists(filename):
+            with open(filename, 'r') as f:
+                for line in f:
+                    session = json.loads(line)
+                    historical_data.append({
+                        'date': session.get('date'),
+                        'totalCTSS': session.get('totalCTSS')
+                    })
 
     return jsonify(historical_data)
 

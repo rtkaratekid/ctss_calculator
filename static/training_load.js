@@ -308,6 +308,132 @@ function displayTrainingLoad() {
     });
 }
 
+async function fetchAllCss() {
+    let ret = {};
+    try {
+        const response = await fetch(`/api/historical-data/bouldering`);
+        const boulderData = await response.json();
+        if (boulderData) {
+            ret.bouldering = boulderData;
+        }
+
+        const response2 = await fetch(`/api/historical-data/endurance`);
+        const enduranceData = await response2.json();
+        if (enduranceData) {
+            ret.endurance = enduranceData;
+        }
+
+        const response3 = await fetch(`/api/historical-data/hangboard`);
+        const hangboardData = await response3.json();
+        if (hangboardData) {
+            ret.hangboard = hangboardData;
+        }
+
+        const response4 = await fetch(`/api/historical-data/training_load`);
+        const trainingLoadData = await response4.json();
+        if (trainingLoadData) {
+            ret.trainingLoad = trainingLoadData
+        }
+
+    } catch (error) {
+        console.error('Error fetching CSS:', error);
+        return {}; // Default value in case of error
+    }
+
+    return ret;
+}
+
+function createCtlChart(data) {
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const ctx = document.getElementById('ctl-chart').getContext('2d');
+
+    // Prepare datasets
+    const datasets = [
+        {
+            label: 'Bouldering CTSS',
+            data: data.bouldering.map(item => ({ x: item.date, y: item.totalCTSS })),
+            borderColor: isDarkMode ? '#ff6ad5' : '#4bc0c0',
+            backgroundColor: isDarkMode ? 'rgba(255, 106, 213, 0.1)' : 'rgba(75, 192, 192, 0.1)',
+            tension: 0.1
+        },
+        {
+            label: 'Endurance CTSS',
+            data: data.endurance.map(item => ({ x: item.date, y: item.totalCTSS })),
+            borderColor: isDarkMode ? '#7ee8fa' : '#ff9f40',
+            backgroundColor: isDarkMode ? 'rgba(126, 232, 250, 0.1)' : 'rgba(255, 159, 64, 0.1)',
+            tension: 0.1
+        },
+        {
+            label: 'Hangboard CTSS',
+            data: data.hangboard.map(item => ({ x: item.date, y: item.totalCTSS })),
+            borderColor: isDarkMode ? '#eeb86d' : '#9966ff',
+            backgroundColor: isDarkMode ? 'rgba(238, 184, 109, 0.1)' : 'rgba(153, 102, 255, 0.1)',
+            tension: 0.1
+        },
+        {
+            label: 'Chronic Training Load',
+            data: data.trainingLoad.map(item => ({ x: item.date, y: item.ctl })),
+            borderColor: isDarkMode ? '#50fa7b' : '#ff6384',
+            backgroundColor: isDarkMode ? 'rgba(80, 250, 123, 0.1)' : 'rgba(255, 99, 132, 0.1)',
+            tension: 0.1
+        },
+        {
+            label: 'Acute Training Load',
+            data: data.trainingLoad.map(item => ({ x: item.date, y: item.atl })),
+            borderColor: isDarkMode ? '#8be9fd' : '#36a2eb',
+            backgroundColor: isDarkMode ? 'rgba(139, 233, 253, 0.1)' : 'rgba(54, 162, 235, 0.1)',
+            tension: 0.1
+        }
+    ];
+
+    new Chart(ctx, {
+        type: 'line',
+        data: { datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: isDarkMode ? '#fffffe' : '#333333'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        parser: 'yyyy-MM-dd', // Adjust this based on your date format
+                        tooltipFormat: 'PP'
+                    },
+
+                    grid: {
+                        color: isDarkMode ? '#4e4e5e' : '#e0e0e0'
+                    },
+                    ticks: {
+                        color: isDarkMode ? '#fffffe' : '#333333'
+                    }
+                },
+                y: {
+                    grid: {
+                        color: isDarkMode ? '#4e4e5e' : '#e0e0e0'
+                    },
+                    ticks: {
+                        color: isDarkMode ? '#fffffe' : '#333333'
+                    }
+                }
+            }
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     displayTrainingLoad();
+    fetchAllCss().then(data => {
+        createCtlChart(data);
+    }).catch(error => {
+        console.error('Error fetching CSS:', error);
+    });
 });
+
