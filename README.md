@@ -16,6 +16,7 @@ The CTSS Calculator is a simple tool designed to help users calculate their Clim
 
 
 ![hangboard formula](static/hangboard.svg)
+- relintensity is the relative intensity to your max. 90% one rep max would be 0.9
 - Time under tension per set is in minutes
 - Total session time under tension is in minutes
 - Total session time is in hours (maybe should be minutes?)
