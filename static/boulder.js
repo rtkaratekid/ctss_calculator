@@ -106,7 +106,8 @@ function submitBoulderingSession() {
     .then(data => {
         console.log('Success:', data);
         alert('Bouldering session submitted successfully!');
-        fetchHistoricalData('bouldering'); // Fetch updated data after submission
+        fetchSessionHistory('bouldering'); // Fetch updated data after submission
+        createChart(data);
     })
     .catch((error) => {
         console.error('Error:', error);
@@ -116,16 +117,14 @@ function submitBoulderingSession() {
     calculateTrainingLoad();
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    fetchHistoricalData('bouldering');
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        let boulderingHistory = await fetchSessionHistory('bouldering');
+        createChart(boulderingHistory);
+    } catch (error) {
+        console.error('Error fetching bouldering history:', error);
+    }
 });
-
-function fetchHistoricalData(sessionType) {
-    fetch(`/api/historical-data/${sessionType}`)
-        .then(response => response.json())
-        .then(data => createChart(data))
-        .catch(error => console.error('Error fetching historical data:', error));
-}
 
 function createChart(data) {
     const isDarkMode = document.body.classList.contains('dark-mode');
@@ -135,7 +134,7 @@ function createChart(data) {
         data: {
             labels: data.map(item => item.date),
             datasets: [{
-                label: 'CTSS Score',
+                label: 'BCSS Score',
                 data: data.map(item => item.totalCTSS),
                 borderColor: isDarkMode ? '#ff6ad5' : 'rgb(75, 192, 192)', // Synthy pink in dark mode
                 backgroundColor: isDarkMode ? 'rgba(255, 106, 213, 0.1)' : 'rgba(75, 192, 192, 0.1)',

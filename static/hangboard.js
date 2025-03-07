@@ -11,12 +11,12 @@ function addHangboard() {
     const tutPerHang = parseFloat(document.getElementById('hangboard-tut').value);
     // const weight = parseInt(document.getElementById('hangboard-weight').value)
     const reps = parseInt(document.getElementById('hangboard-reps').value);
-    const sessionDuration = parseInt(document.getElementById('session-duration').value);
+    sessionDuration = parseInt(document.getElementById('session-duration').value);
 
-    if (!isNaN(reps) && !isNaN(weight)) {
+    if (!isNaN(reps)) {
         const tutPerSet = (tutPerHang / 60) * reps; // Convert seconds to minutes
         const hang = { grip, relIntensity, reps, tutPerHang, tutPerSet };
-        hang.ctss = calculateHangboardCTSS(hang);
+        hang.ctss = calculateHangboardCtssSet(hang);
         hangboardHangs.push(hang);
 
         const newRow = document.createElement('tr');
@@ -25,13 +25,13 @@ function addHangboard() {
             <td>${hangboardHangs.length}</td>
             <td>${grip}</td>
             <td>${relIntensity}%</td>
-            <td>${tutPerSet}</td>
+            <td>${tutPerHang}</td>
             <td>${hang.ctss.toFixed(2)}</td>
         `;
         document.getElementById('added-hangboard').append(newRow);
 
         let sessionCtss = calculateHangboardSessionCTSS();
-        document.getElementById('hangboard-score').textContent = sessionCtss.toFixed(2);
+        document.getElementById('hangboard-score').textContent = sessionCtss;
     }
 }
 
@@ -42,10 +42,15 @@ function calculateHangboardCtssSet(hang) {
 function calculateHangboardSessionCTSS() {
     let scalingFactor = 2.5;
     let volume = hangboardHangs.reduce((sum, hang) => sum + hang.ctss, 0);
-    let totalTutSeconds = hangboardHangs.reduce((sum, hang) => sum + (hang.reps * hang.length), 0);
+    console.log(volume);
+    let totalTutSeconds = hangboardHangs.reduce((sum, hang) => sum + (hang.reps * hang.tutPerHang), 0);
+    console.log(totalTutSeconds);
     let totalTutMinutes = totalTutSeconds / 60;
+    console.log(totalTutMinutes);
     let density = totalTutMinutes / sessionDuration;
+    console.log(density);
     let hCss = volume * density * scalingFactor;
+    console.log(hCss);
     return Math.round(hCss);
 }
 
@@ -73,7 +78,7 @@ function updateHangboardTable() {
         newRow.innerHTML = `
             <td>${index + 1}</td>
             <td>${hang.grip}</td>
-            <td>${hang.weight}</td>
+            <td>${hang.relIntensity}</td>
             <td>${hang.reps}</td>
             <td>${hang.ctss}</td>
         `;
