@@ -4,30 +4,6 @@ The CTSS Calculator is a simple tool designed to help users calculate their Clim
 
 ![CTSS Calculator Preview](static/landing.png)
 
-## Equations
-
-## Bouldering
-![boulder formula](static/boulder.svg)
-- pretty self explanatory
-
----
-
-## Endurance
-![endurance formula](static/endurance.svg)
-- duration is the amount of time you spent climbing on each route attempt in... hours?
-- TuT is session time under tension in hours
-- Session duration is the length of the whole session in hours
-
----
-
-## Hangboard
-![hangboard formula](static/hangboard.svg)
-- relintensity is the relative intensity to your max. 90% one rep max would be 0.9
-- Time under tension per set is in minutes
-- Total session time under tension is in minutes
-- Total session time is in hours (maybe should be minutes?)
-- scaling factor is currently 2.5 because I thought that seemed reasonable
-
 ## Features
 
 - Calculate CTSS based on workout data
