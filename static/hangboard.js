@@ -47,7 +47,7 @@ function calculateHangboardCtssSet(hang) {
 }
 
 function calculateHangboardSessionCTSS() {
-    let scalingFactor = 3.5;
+    let scalingFactor = 1;
     const sessionLoad = hangboardSets.reduce((sum, set) => sum + set.ctss, 0);
     console.log(sessionLoad);
     const sessionTut = hangboardSets.reduce((sum, set) => sum + set.tut, 0); // in minutes
@@ -190,5 +190,5 @@ function createChart(data) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    fetchHistoricalData('bouldering');
+    fetchHistoricalData('hangboard');
 });

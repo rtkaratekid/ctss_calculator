@@ -5,7 +5,6 @@ import datetime
 
 app = Flask(__name__)
 
-# Ensure the data directory exists
 if not os.path.exists('data'):
     os.makedirs('data')
 
@@ -50,81 +49,6 @@ def submit_training_load():
 
     return {'message': 'Training load saved successfully'}, 200
 
-@app.route('/api/get-current-training-load')
-def get_current_training_load():
-    filename = 'data/training_load.jsonl'
-    date = datetime.datetime.now().strftime('%Y-%m-%d')
-    training_load = {'date': date, 'daily_stress': 0, 'ctl': 0, 'atl': 0, 'tsb': 0}
-
-    if os.path.exists(filename):
-        with open(filename, 'r') as f:
-            for line in f:
-                training_load = json.loads(line)
-    
-    return jsonify(training_load)
-
-
-@app.route('/api/get-last-training-load')
-def get_last_training_load():
-    filename = 'data/training_load.jsonl'
-    date = datetime.datetime.now().strftime('%Y-%m-%d')
-    training_load = {'date': date, 'daily_stress': 0, 'ctl': 0, 'atl': 0, 'tsb': 0}
-
-    if os.path.exists(filename):
-        with open(filename, 'r') as f:
-            for line in f:
-                # get the line with the most recent date that isn't today
-                if json.loads(line).get('date') != date:
-                    training_load = json.loads(line)
-    
-    print('Training laod:', training_load)
-    return jsonify(training_load)
-
-@app.route('/api/bctss')
-def get_bctss():
-    filename = 'data/bouldering_sessions.jsonl'
-    date = datetime.datetime.now().strftime('%Y-%m-%d')
-    total_bctss = 0
-
-    if os.path.exists(filename):
-        with open(filename, 'r') as f:
-            for line in f:
-                session = json.loads(line)
-                if session.get('date') == date:
-                    total_bctss += session.get('totalCTSS')
-
-    return jsonify({'date': date, 'totalCTSS': total_bctss})
-
-@app.route('/api/ectss')
-def get_ectss():
-    filename = 'data/endurance_sessions.jsonl'
-    date = datetime.datetime.now().strftime('%Y-%m-%d')
-    total_ectss = 0
-
-    if os.path.exists(filename):
-        with open(filename, 'r') as f:
-            for line in f:
-                session = json.loads(line)
-                if session.get('date') == date:
-                    total_ectss += session.get('totalCTSS')
-
-    return jsonify({'date': date, 'totalCTSS': total_ectss})
-
-@app.route('/api/hctss')
-def get_hctss():
-    filename = 'data/hangboard_sessions.jsonl'
-    date = datetime.datetime.now().strftime('%Y-%m-%d')
-    total_hctss = 0
-
-    if os.path.exists(filename):
-        with open(filename, 'r') as f:
-            for line in f:
-                session = json.loads(line)
-                if session.get('date') == date:
-                    total_hctss += session.get('totalCTSS')
-
-    return jsonify({'date': date, 'totalCTSS': total_hctss})
-
 @app.route('/api/historical-data/<session_type>')
 def get_historical_data(session_type):
     if session_type not in ['bouldering', 'endurance', 'hangboard', 'training_load']:
@@ -150,11 +74,16 @@ def get_historical_data(session_type):
         if os.path.exists(filename):
             with open(filename, 'r') as f:
                 for line in f:
-                    session = json.loads(line)
-                    historical_data.append({
-                        'date': session.get('date'),
-                        'totalCTSS': session.get('totalCTSS')
-                    })
+                    try:
+                        session = json.loads(line.strip())
+                        historical_data.append({
+                            'date': session.get('date'),
+                            'totalCTSS': session.get('totalCTSS')
+                        })
+                    except json.JSONDecodeError as e:
+                        print(f"Error parsing JSON on line: {line}")
+                        print(f"Error details: {str(e)}")
+                        continue  # Skip this line and continue with the next
 
     return jsonify(historical_data)
 
