@@ -8,9 +8,11 @@ let sessionDuration = 0; // minutes
 
 function addEndurance() {
     const gradeValue = parseInt(document.getElementById('endurance-grade').value);
-    const duration = parseInt(document.getElementById('endurance-duration').value);
+    const routeDuration = parseInt(document.getElementById('endurance-duration').value);
     maxGrade = parseInt(document.getElementById('max-endurance-grade').value);
-    sessionDuration = parseInt(document.getElementById('session-duration').value);
+    let sDuration = parseInt(document.getElementById('session-duration').value);
+    sessionDuration = sDuration / 60; // Convert minutes to hours
+    let duration = routeDuration / 60; // Convert minutes to hours
 
     if (!isNaN(gradeValue) && !isNaN(duration)) {
         const route = { gradeValue, duration };
@@ -22,25 +24,27 @@ function addEndurance() {
         newRow.innerHTML = `
             <td>${enduranceRoutes.length}</td>
             <td>${getYDSGrade(gradeValue)}</td>
-            <td>${duration}</td>
-            <td>${route.ctss}</td>
+            <td>${duration * 60}</td>
+            <td>${route.ctss.toFixed(2)}</td>
         `;
         document.getElementById('added-endurance').append(newRow);
 
         let sessionCtss = calculateEnduranceSessionCTSS();
-        document.getElementById('endurance-score').textContent = sessionCtss;
+        document.getElementById('endurance-score').textContent = sessionCtss.toFixed(2);    
     }
 }
 
 function calculateEnduranceCTSS(route) {
-    return Math.pow((route.gradeValue) / (maxGrade), 2) * route.duration;
+    const normalizedGrade = route.gradeValue / maxGrade;
+    const routeLoad = Math.round(Math.pow(normalizedGrade, 2) * route.duration * 100) / 100;
+    return routeLoad;
 }
 
 function calculateEnduranceSessionCTSS() {
-    let volume = enduranceRoutes.reduce((sum, route) => sum + route.ctss, 0);
-    let totalDuration = enduranceRoutes.reduce((sum, route) => sum + route.duration, 0);
-    let density = totalDuration / sessionDuration;
-    return volume * density;
+    const totalClimbingTime = enduranceRoutes.reduce((sum, route) => sum + route.duration, 0);
+    const sessionDensity = totalClimbingTime / sessionDuration;
+    const sessionLoad = enduranceRoutes.reduce((sum, route) => sum + route.ctss, 0);
+    return Math.round(100 * 100 * sessionLoad * sessionDensity) / 100;
 }
 
 function clearEndurance() {
@@ -102,6 +106,14 @@ function submitEnduranceSession() {
     });
 
     calculateTrainingLoad();
+}
+
+function ydsToValue(grade) {
+    const grades = {
+        "5.10-": 6, "5.10+": 7, "5.11-": 8, "5.11+": 9, "5.12-": 10,
+        "5.12+": 11, "5.13-": 12, "5.13+": 13, "5.14-": 14, "5.14+": 15
+    };
+    return grades[grade] || 0;
 }
 
 function getYDSGrade(value) {

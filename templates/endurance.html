@@ -20,6 +20,24 @@
     <form id="endurance-form">
         <div class="form-container">
             <div class="input-section">
+                <label for="max-endurance-grade">Max YDS Grade:</label>
+                <select id="max-endurance-grade" required>
+                    <option value="">Select grade</option>
+                    <option value="6">5.10-</option>
+                    <option value="7">5.10+</option>
+                    <option value="8">5.11-</option>
+                    <option value="9">5.11+</option>
+                    <option value="10">5.12-</option>
+                    <option value="11">5.12+</option>
+                    <option value="12">5.13-</option>
+                    <option value="13">5.13+</option>
+                    <option value="14">5.14-</option>
+                    <option value="15">5.14+</option>
+                </select>
+
+                <label for="session-duration">Session Duration (mins):</label>
+                <input type="number" id="session-duration" min="10" max="240" required>
+
                 <label for="endurance-grade">YDS Grade:</label>
                 <select id="endurance-grade" required>
                     <option value="">Select grade</option>

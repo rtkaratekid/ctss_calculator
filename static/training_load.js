@@ -1,69 +1,14 @@
-
-// function that fetches the historical data for a given session type
-// types include bouldering, endurance, and hangboard
-// returns an array of objects with the following format:
-// {
-//     date: '2021-08-01',
-//     totalCTSS: 100
-// }
-// function fetchSessionHistory(sessionType) {
-//     fetch(`/api/historical-data/${sessionType}`)
-//         .then(response => response.json())
-//         .then(data => {
-//             if (data) {
-//                 console.log('Data:', data);
-//                 return data;
-//             } else {
-//                 return [];
-//             }
-//         })
-//         .catch(error => console.error('Error fetching historical data:', error));
-// }
-
-// function calculateDailyStress() {
-
-//     // if there is no data, default to 0
-//     let bctss = 0 
-//     let ectss = 0
-//     let hctss = 0
-//     let date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-
-//     let bData = fetchSessionHistory('bouldering');
-//     console.log('Bouldering data:', bData);
-//     // filter out all the data that does not have today's date
-//     bData = bData.filter(item => item.date === date);
-//     if (bctss.length === 1) {
-//         // if there is only one item in the array, get the totalCTSS value
-//         bctss = bctss[0].totalCTSS;
-//     } else if (bctss.length > 1) {
-//         // if there are multiple items in the array, add all the totalCTSS values together
-//         bctss = bctss.reduce((acc, item) => acc + item.totalCTSS, 0);
-//     }
-
-//     let eData = fetchSessionHistory('endurance');
-//     // filter out all the data that does not have today's date
-//     eData = eData.filter(item => item.date === date);
-//     if (ectss.length === 1) {
-//         // if there is only one item in the array, get the totalCTSS value
-//         ectss = ectss[0].totalCTSS;
-//     } else if (ectss.length > 1) {
-//         // if there are multiple items in the array, add all the totalCTSS values together
-//         ectss = ectss.reduce((acc, item) => acc + item.totalCTSS, 0);
-//     }
-
-//     let hData = fetchSessionHistory('hangboard');
-//     // filter out all the data that does not have today's date
-//     hData = hData.filter(item => item.date === date);
-//     if (hctss.length === 1) {
-//         // if there is only one item in the array, get the totalCTSS value
-//         hctss = hctss[0].totalCTSS;
-//     } else if (hctss.length > 1) {
-//         // if there are multiple items in the array, add all the totalCTSS values together
-//         hctss = hctss.reduce((acc, item) => acc + item.totalCTSS, 0);
-//     }
-
-//     return bctss + ectss + hctss;
-// }
+/*
+training load data looks like this 
+{
+    date: '2021-08-01',
+    daily_stress: 100,
+    ctl: 0,
+    atl: 0,
+    tsb: 0
+}
+*/
+let trainingLoadHistory = []
 
 async function fetchSessionHistory(sessionType) {
     try {
@@ -76,7 +21,7 @@ async function fetchSessionHistory(sessionType) {
     }
 }
 
-function getTodayDate() {
+function getTodaysDate() {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -84,123 +29,177 @@ function getTodayDate() {
     return `${year}-${month}-${day}`;
 }
 
-async function calculateDailyStress() {
-    let bctss = 0;
-    let ectss = 0;
-    let hctss = 0;
-    // const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    const date = getTodayDate();
-    console.log('Today\'s date:', date);
+function calculateDailyStress(bData, eData, hData) {
+    let bss = bData.reduce((acc, item) => acc + item.totalCTSS, 0);
+    let ess = eData.reduce((acc, item) => acc + item.totalCTSS, 0);
+    let hss = hData.reduce((acc, item) => acc + item.totalCTSS, 0);
 
-    const bData = await fetchSessionHistory('bouldering');
-    const filteredBData = bData.filter(item => item.date === date);
-    console.log('Filtered bouldering data:', filteredBData);
-    bctss = filteredBData.reduce((acc, item) => acc + item.totalCTSS, 0);
+    console.log('Bouldering CTSS:', bss);
+    console.log('Endurance CTSS:', ess);
+    console.log('Hangboard CTSS:', hss);
 
-    const eData = await fetchSessionHistory('endurance');
-    const filteredEData = eData.filter(item => item.date === date);
-    ectss = filteredEData.reduce((acc, item) => acc + item.totalCTSS, 0);
-
-    const hData = await fetchSessionHistory('hangboard');
-    const filteredHData = hData.filter(item => item.date === date);
-    hctss = filteredHData.reduce((acc, item) => acc + item.totalCTSS, 0);
-
-    console.log('Bouldering CTSS:', bctss);
-    console.log('Endurance CTSS:', ectss);
-    console.log('Hangboard CTSS:', hctss);
-
-    return bctss + ectss + hctss;
+    return bss + ess + hss;
 }
 
+function calcTodaysTrainingLoad(lastLoad, todayLoad) {
+    let lastDate = new Date(lastLoad.date);
+    let todaysDate = new Date(todayLoad.date);
 
+    if (!lastDate || (lastLoad.ctl === 0 && lastLoad.atl === 0)) {
+        // this is the first entry
+        ctl = todayLoad.daily_stress;
+        atl = todayLoad.daily_stress;
+        tsb = 0;
+    } else {
+        let ctl = 0;
+        let atl = 0;
+        let tsb = 0;
+        // calulate the number of days off between sessions
+        console.log('Last date:', lastDate);
+        console.log('Today\'s date:', todaysDate);
 
-/*
-training load data looks like this 
-{
-    date: '2021-08-01',
-    daily_stress: 100,
-    ctl: 0,
-    atl: 0,
-    tsb: 0
-}
-*/
-async function fetchCurrentTrainingLoad() {
-    try {
-        const response = await fetch(`/api/get-current-training-load`);
-        const data = await response.json();
-        return data || null;
-    } catch (error) {
-        console.error('Error fetching training load:', error);
-        return null;
+        const timeDiff = todaysDate - lastDate;
+        const daysElapsed = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        console.log('Days elapsed:', daysElapsed);
+
+        if (daysElapsed > 0) {
+            // apply decays to account for recovery
+            const ctlDecay = Math.pow(29/30, daysElapsed);
+            const atlDecay = Math.pow(6/7, daysElapsed);
+            ctl *= ctlDecay;
+            atl *= atlDecay;
+        }
+
+        ctl = ctl * (29 / 30) + todayLoad.daily_stress * (1 / 30);
+        atl = atl * (6 / 7) + todayLoad.daily_stress * (1 / 7);
+        const roundedCtl = Math.round(ctl * 10) / 10;
+        const roundedAtl = Math.round(atl * 10) / 10;
+        tsb = roundedCtl - roundedAtl;
+
+        todayLoad.ctl = roundedCtl;
+        todayLoad.atl = roundedAtl;
+        todayLoad.tsb = tsb;
     }
 }
 
-async function calculateTrainingLoad() {
+async function analyzeTodaysTrainingLoad(lastLoad, todaysLoad) {
     try {
-        const dailyStress = await calculateDailyStress();
-        console.log('Daily stress:', dailyStress);
+        const date = new Date(todaysLoad.date);
+        console.log('Today\'s date:', date);
 
+        const bData = await fetchSessionHistory('bouldering');
+        const filteredBData = bData.filter(item => item.date === date);
+
+        const eData = await fetchSessionHistory('endurance');
+        const filteredEData = eData.filter(item => item.date === date);
+
+        const hData = await fetchSessionHistory('hangboard');
+        const filteredHData = hData.filter(item => item.date === date);
+
+        const dailyStress = calculateDailyStress(filteredBData, filteredEData, filteredHData);
+
+        todaysLoad.daily_stress = dailyStress;
+
+        calcTodaysTrainingLoad(lastLoad, todaysLoad);
+
+    } catch (error) {
+        console.error('Error analyzing training load:', error);
+    }
+}
+
+async function analyzeAllTrainingLoads() {
+    try {
         const loadHistory = await fetchSessionHistory('training_load');
-        let load = loadHistory[loadHistory.length - 1] || { ctl: 0, atl: 0 };
 
-        // const currentDate = new Date();
-        const date = getTodayDate();
-        const currentDate = new Date(date);
-        console.log('Last training load:', load);
+        // sort by date
+        loadHistory.sort((a, b) => {
+            return new Date(a.date) - new Date(b.date);
+        });
 
-        if (load.date === currentDate &&
-            load.daily_stress === dailyStress) {
-            console.log('Training load already submitted for today');
-            return load;
-        }
+        let lastLoad = null;
+        let todaysLoad = null;
 
-        if (load.ctl === 0 && load.atl === 0) {
-            load.ctl = dailyStress;
-            load.atl = dailyStress;
-            load.tsb = 0;
-        } else {
-            const timeDiff = currentDate - new Date(load.date);
-            console.log('Time difference:', timeDiff);
-            const daysElapsed = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-            console.log('Days elapsed:', daysElapsed);
-
-            if (daysElapsed > 0) {
-                console.log('Decaying training load');
-                const ctlDecay = Math.pow(29/30, daysElapsed);
-                const atlDecay = Math.pow(6/7, daysElapsed);
-                load.ctl *= ctlDecay;
-                load.atl *= atlDecay;
+        for (let i = 0; i < loadHistory.length; i++) {
+            const load = loadHistory[i];
+            if (i === 0) {
+                lastLoad = load;
+            } else if (i === 1) {
+                todaysLoad = load;
+            } else {
+                lastLoad = todaysLoad;
+                todaysLoad = load;
             }
 
-            load.ctl = (load.ctl * (29 / 30)) + (dailyStress * (1 / 30));
-            load.ctl = Math.round(load.ctl * 10) / 10;
-
-            load.atl = (load.atl * (6 / 7)) + (dailyStress * (1 / 7));
-            load.atl = Math.round(load.atl * 10) / 10;
-
-            load.tsb = load.ctl - load.atl;
+            if (todaysLoad) {
+                await analyzeTodaysTrainingLoad(lastLoad, todaysLoad);
+            }
         }
 
-        const trainingLoadData = {
-            date: date,
-            daily_stress: dailyStress,
-            ctl: load.ctl,
-            atl: load.atl,
-            tsb: load.tsb,
-        };
+    } catch (error) {
+        console.error('Error analyzing training loads:', error);
+    }
+}
 
+async function updateLatestTrainingLoad() {
+    try {
+
+        // const trainingLoad = await fetchSessionHistory('training_load');
+        if (trainingLoadHistory.length === 0) {
+            console.error('No training load data found');
+            return;
+        }
+
+        const lastTrainingLoad = trainingLoadHistory[trainingLoadHistory.length - 1];
+        const todaysDate = getTodaysDate();
+
+        // find today's daily stress 
+        const bData = await fetchSessionHistory('bouldering');
+        const filteredBData = bData.filter(item => item.date === todaysDate);
+
+        const eData = await fetchSessionHistory('endurance');
+        const filteredEData = eData.filter(item => item.date === todaysDate);
+
+        const hData = await fetchSessionHistory('hangboard');
+        const filteredHData = hData.filter(item => item.date === todaysDate);
+
+        const dailyStress = calculateDailyStress(filteredBData, filteredEData, filteredHData);
+
+        if(lastTrainingLoad.date === todaysDate &&
+            lastTrainingLoad.daily_stress === dailyStress) {
+
+            console.log('Training load already submitted for today');
+            return lastTrainingLoad;
+
+        } else if (lastTrainingLoad.date === todaysDate) {
+            // update the daily stress
+            lastTrainingLoad.daily_stress = dailyStress;
+        } else {
+
+            // calculate the training load
+            let todayLoad = {
+                date: todaysDate,
+                daily_stress: dailyStress,
+                ctl: 0,
+                atl: 0,
+                tsb: 0
+            };
+
+            calcTodaysTrainingLoad(lastTrainingLoad, todayLoad);
+            trainingLoadHistory.push(todayLoad);
+            lastTrainingLoad = todayLoad;
+        }
+
+        // submit the training load
         const response = await fetch('/api/submit-training-load', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(trainingLoadData)
+            body: JSON.stringify(lastTrainingLoad)
         });
 
         const data = await response.json();
         console.log('Success:', data);
-
-        return load;
     } catch (error) {
         console.error('Error:', error);
         alert('Error calculating or submitting training load. Please try again.');
@@ -208,102 +207,37 @@ async function calculateTrainingLoad() {
     }
 }
 
-// TODO calculate training load for current day if the day before there was no training
-// async function calculateTrainingLoad() {
-//     try {
-//         let dailyStress = await calculateDailyStress();
-//         console.log('Daily stress:', dailyStress);
-
-//         // let load = await fetchLastTrainingLoad();
-//         let loadHistory = fetchSessionHistory('training_load');
-//         // get the last item in the array
-//         let Load = loadHistory[lastLoad.length - 1];
-
-//         const currentDate = new Date();
-//         console.log('Last training load:', load);
-
-//         // if the last training load is from today and the daily stress is the same,
-//         // return the load
-//         if (load.Date === currentDate.toISOString().split('T')[0] &&
-//             load.daily_stress === dailyStress) {
-//             console.log('Training load already submitted for today');
-//             return load;
-//         }
-
-//         if (load.ctl === 0 && load.atl === 0) {
-//             load.ctl = dailyStress;
-//             load.atl = dailyStress;
-//         } else {
-
-//            // calculate the number of days since the last training load submission
-//             const timeDiff = currentDate - new Date(load.date);
-//             console.log('Time difference:', timeDiff);
-//             const daysElapsed = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-//             console.log('Days elapsed:', daysElapsed);
-
-//             if (daysElapsed > 0) {
-//                 // apply decay to days with workouts
-//                 console.log('Decaying training load');
-//                 const ctlDecay = Math.pow(29/30, daysElapsed);
-//                 const atlDecay = Math.pow(6/7, daysElapsed);
-//                 load.ctl *= ctlDecay;
-//                 load.atl *= atlDecay;
-//             }
-
-//             // calculate the chronic training load
-//             load.ctl = (load.ctl * (29 / 30)) + (dailyStress * (1 / 30));
-//             load.ctl = Math.round(load.ctl * 10) / 10;
-
-//             // calculate the acute training load
-//             load.atl = (load.atl * (6 / 7)) + (dailyStress * (1 / 7));
-//             load.atl = Math.round(load.atl * 10) / 10;
-
-//             // calculate the training stress balance
-//             load.tsb = load.ctl - load.atl;
-//         }
-
-//         const trainingLoadData = {
-//             date: currentDate.toISOString().split('T')[0], // YYYY-MM-DD format
-//             daily_stress: dailyStress,
-//             ctl: load.ctl,
-//             atl: load.atl,
-//             tsb: load.tsb,
-//         }
-
-//         // submit the training load if it's different from the last one
-//         const response = await fetch('/api/submit-training-load', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify(trainingLoadData)
-//         });
-
-//         const data = await response.json();
-//         console.log('Success:', data);
-
-//         return load;
-//     } catch (error) {
-//         console.error('Error:', error);
-//         alert('Error calculating or submitting training load. Please try again.');
-//         throw error;
-//     }
-// }
-
-// TODO update the chronic and acute training loads based on historical data
-// that it hasn't used yet
 document.addEventListener('DOMContentLoaded', async function() {
+    // check if the document is index.html
+    if (document.title !== 'CTSS Calculator | Climbing Training Stress Score') {
+        return
+    }
+ 
     try {
-        await displayTrainingLoad();
+        const loadHistory = await fetchSessionHistory('training_load');
+        if (loadHistory.length === 0) {
+            console.log('No training load data found. Initializing...');
+            await analyzeAllTrainingLoads();
+        } else {
+            console.log('Training load data found. Updating latest entry...');
+            trainingLoadHistory = loadHistory;
+            const _ = await updateLatestTrainingLoad();
+        }
+
+        if (trainingLoadHistory.length === 0) {
+            console.error('No training load data found');
+            return;
+        }
+
+        displayTrainingLoad(trainingLoadHistory[trainingLoadHistory.length - 1]);
         createCtlChart();
     } catch (error) {
         console.error('Error initializing page:', error);
     }
 });
 
-async function displayTrainingLoad() {
-    try {
-        const load = await calculateTrainingLoad();
+async function displayTrainingLoad(load) {
+   try {
         const container = document.getElementById('training-load-container');
         if (container) {
             container.innerHTML = `
@@ -317,7 +251,7 @@ async function displayTrainingLoad() {
                  </tr>
                  <tr>
                      <td>${load.date}</td>
-                     <td>${load.daily_stress}</td>
+                     <td>${load.daily_stress.toFixed(2)}</td>
                      <td>${load.ctl}</td>
                      <td>${load.atl}</td>
                      <td>${load.tsb.toFixed(2)}</td>
@@ -344,8 +278,7 @@ async function fetchAllCss() {
         const hData = await fetchSessionHistory('hangboard');
         ret.hangboard = hData;
 
-        const tData = await fetchSessionHistory('training_load');
-        ret.trainingLoad = tData;
+        ret.trainingLoad = trainingLoadHistory;
 
        return ret;
 
