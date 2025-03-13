@@ -47,6 +47,15 @@ h1 {
     to { transform: translateY(0); opacity: 1; }
 }
 
+#session-date {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    margin-bottom: 15px;
+    width: 200px;
+}
+
 form {
     background-color: #fff;
     margin-bottom: 30px;
@@ -448,3 +457,4 @@ body, .header, .menu-item, form, input, select, table, th, tr {
     justify-content: center;
     height: 100%; /* Ensure the icon takes the full height of the FAB */
 }
+

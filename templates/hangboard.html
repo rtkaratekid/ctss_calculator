@@ -17,6 +17,14 @@
     <a href="index.html" class="fab menu-button">
         <i class="fas fa-home"></i>
     </a>
+    <div class="input-section">
+        <label for="session-date">Session Date:</label>
+        <input type="date" id="session-date" 
+       min="2010-01-01" 
+       max="2030-12-31"
+       pattern="\d{4}-\d{2}-\d{2}" required>
+        <!-- <input type="date" id="session-date" required> -->
+    </div>
     <form id="hangboard-form">
         <div class="form-container">
             <div class="input-section">
@@ -40,14 +48,14 @@
                     <option value="narrow_pinch">Narrow Pinch</option>
                 </select>
 
-                <label for="hangboard-rel-intensity">Intensity (% relative to max)</label>
-                <input type="number" id="hangboard-rel-intensity" min="50" max="100" required>
+                <label for="hangboard-intensity">Intensity (% relative to max)</label>
+                <input type="number" id="hangboard-intensity" min="50" max="100" required>
 
                 <label for="hangboard-reps">Reps:</label>
                 <input type="number" id="hangboard-reps" min="1" max="50" required>
 
-                <label for="hangboard-tut">Hang Duration (seconds)</label>
-                <input type="number" id="hangboard-tut" min="1" max="120" required>
+                <label for="hangboard-seconds">Hang Duration (seconds)</label>
+                <input type="number" id="hangboard-seconds" min="1" max="120" required>
 
                 <button type="button" onclick="addHangboard()">
                     <i class="fas fa-plus"></i> Add New Hang
@@ -85,6 +93,5 @@
         <canvas id="ctssChart"></canvas>
     </div>
     <script src="hangboard.js"></script>
-    <script src="{{ url_for('static', filename='training_load.js') }}"></script>
 </body>
 </html>

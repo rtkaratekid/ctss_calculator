@@ -17,6 +17,10 @@
     <a href="index.html" class="fab menu-button">
         <i class="fas fa-home"></i>
     </a>
+    <div class="input-section">
+        <label for="session-date">Session Date:</label>
+        <input type="date" id="session-date" required>
+    </div>
     <form id="endurance-form">
         <div class="form-container">
             <div class="input-section">
@@ -91,6 +95,5 @@
         <canvas id="ctssChart"></canvas>
     </div>
     <script src="endurance.js"></script>
-    <script src="{{ url_for('static', filename='training_load.js') }}"></script>
 </body>
 </html>

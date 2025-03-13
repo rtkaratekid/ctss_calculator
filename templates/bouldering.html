@@ -7,7 +7,10 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/date-fns/2.30.0/date-fns.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
     <script src="darkMode.js"></script>
 </head>
 <body>
@@ -17,6 +20,14 @@
     <a href="index.html" class="fab menu-button">
         <i class="fas fa-home"></i>
     </a>
+    <div class="input-section">
+        <label for="session-date">Session Date:</label>
+        <input type="date" id="session-date" 
+       min="2010-01-01" 
+       max="2030-12-31"
+       pattern="\d{4}-\d{2}-\d{2}" required>
+        <!-- <input type="date" id="session-date" required> -->
+    </div>
     <form id="bouldering-form">
         <div class="form-container">
             <div class="input-section">
@@ -105,6 +116,5 @@
         <canvas id="ctssChart"></canvas>
     </div>
     <script src="boulder.js"></script>
-    <script src="{{ url_for('static', filename='training_load.js') }}"></script>
 </body>
 </html>

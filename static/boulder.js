@@ -1,144 +1,41 @@
-/********************************/
-/* Bouldering Session Functions */
-/********************************/
-
 let boulders = [];
-let maxBoulderGrade = 0;
-let sessionDuration = 0;
+let chart = null;
 
-function addBoulder() {
-    maxBoulderGrade = parseInt(document.getElementById('max-boulder-grade').value);
-    sessionDuration = parseInt(document.getElementById('session-duration').value);
-    const grade = parseInt(document.getElementById('boulder-grade').value);
-    const attempts = parseInt(document.getElementById('boulder-attempts').value);
-
-    if (!isNaN(grade) && !isNaN(attempts) && !isNaN(maxBoulderGrade) && !isNaN(sessionDuration)) {
-        if (grade < 0 || grade > maxBoulderGrade) {
-            alert('Boulder grade must be between 0 and the maximum grade.');
-            return;
-        }
-
-        const boulder = { grade, attempts };
-        boulder.ctss = calculateBoulderCTSS(boulder);
-        boulders.push(boulder);
-
-        const newRow = document.createElement('tr');
-        newRow.style.animation = 'slideIn 0.5s ease-out';
-        newRow.innerHTML = `
-            <td>${boulders.length}</td>
-            <td>V${grade}</td>
-            <td>${attempts}</td>
-            <td>${boulder.ctss.toFixed(3)}</td>
-        `;
-        document.getElementById('added-boulders').append(newRow);
-
-        let sessionCtss = calculateBoulderSessionCTSS();
-        document.getElementById('bouldering-score').textContent = sessionCtss;
-    }
+// Add UTC date helper function at the top
+function getUTCDateString(date = new Date()) {
+    return date.toISOString().split('T')[0];
 }
 
-function calculateBoulderCTSS(boulder) {
-    let relative_intensity = (boulder.grade + 1) / (maxBoulderGrade + 1);
-    let scaled_intensity = Math.pow(relative_intensity, 2);
-    let ctss = boulder.attempts * scaled_intensity;
-    return ctss;
-}
-
-function calculateBoulderSessionCTSS() {
-    let total_attempts = boulders.reduce((sum, boulder) => sum + boulder.attempts, 0);
-    let density = total_attempts / (sessionDuration / 60);
-    let intensity_sum = boulders.reduce((sum, boulder) => sum + boulder.ctss, 0);
-    let session_ctss = intensity_sum * density;
-    return Number(session_ctss.toFixed(1));
-}
-
-function clearBoulders() {
-    boulders = [];
-    document.getElementById('added-boulders').innerHTML = '';
-    document.getElementById('bouldering-score').textContent = '0';
-}
-
-function undoBoulder() {
-    if (boulders.length > 0) {
-        boulders.pop(); // Remove the last boulder from the array
-        updateBoulderTable(); // Update the table display
-        calculateBoulderSessionCTSS(); // Recalculate the session CTSS
-    } else {
-        alert("No boulders to undo!");
-    }
-}
-
-function updateBoulderTable() {
-    const tableBody = document.getElementById('added-boulders');
-    tableBody.innerHTML = ''; // Clear the current table
-    boulders.forEach((boulder, index) => {
-
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-            <td>${index + 1}</td>
-            <td>V${boulder.grade}</td>
-            <td>${boulder.attempts}</td>
-            <td>${boulder.ctss}</td>
-        `;
-        tableBody.appendChild(newRow);
-    });
-}
-
-function submitBoulderingSession() {
-    const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    const sessionData = {
-        type: 'bouldering',
-        date: currentDate,
-        totalCTSS: Number(calculateBoulderSessionCTSS()),
-        boulders: boulders
+function initializeChart() {
+    const ctx = document.getElementById('ctssChart').getContext('2d');
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    
+    // Theme-adaptive colors
+    const themeColors = {
+        text: isDarkMode ? '#fffffe' : '#2c3e50',
+        grid: isDarkMode ? '#4e4e5e' : '#e0e0e0',
+        background: isDarkMode ? '#1e1e2e' : '#ffffff',
+        line: isDarkMode ? '#ff6ad5' : '#3498db'
     };
 
-    console.log('Sending session data:', sessionData);
+    // Destroy existing chart if it exists
+    if (chart) chart.destroy();
 
-    fetch('/api/submit-session', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(sessionData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Success:', data);
-        alert('Bouldering session submitted successfully!');
-        fetchSessionHistory('bouldering'); // Fetch updated data after submission
-        createChart(data);
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-        alert('Error submitting bouldering session. Please try again.');
-    });
-    
-    calculateTrainingLoad();
-}
-
-document.addEventListener('DOMContentLoaded', async function() {
-    try {
-        let boulderingHistory = await fetchSessionHistory('bouldering');
-        createChart(boulderingHistory);
-    } catch (error) {
-        console.error('Error fetching bouldering history:', error);
-    }
-});
-
-function createChart(data) {
-    const isDarkMode = document.body.classList.contains('dark-mode');
-    const ctx = document.getElementById('ctssChart').getContext('2d');
-    new Chart(ctx, {
+    chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: data.map(item => item.date),
+            labels: [],
             datasets: [{
-                label: 'BCSS Score',
-                data: data.map(item => item.totalCTSS),
-                borderColor: isDarkMode ? '#ff6ad5' : 'rgb(75, 192, 192)', // Synthy pink in dark mode
-                backgroundColor: isDarkMode ? 'rgba(255, 106, 213, 0.1)' : 'rgba(75, 192, 192, 0.1)',
-                tension: 0.1
+                label: 'Bouldering CTSS',
+                data: [],
+                borderColor: themeColors.line,
+                backgroundColor: isDarkMode 
+                    ? chroma(themeColors.line).alpha(0.1).css()
+                    : chroma(themeColors.line).alpha(0.1).css(),
+                tension: 0.1,
+                borderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
             }]
         },
         options: {
@@ -147,29 +44,231 @@ function createChart(data) {
             plugins: {
                 legend: {
                     labels: {
-                        color: isDarkMode ? '#fffffe' : '#333333'
+                        color: themeColors.text,
+                        font: {
+                            weight: 'bold'
+                        }
                     }
+                },
+                tooltip: {
+                    backgroundColor: themeColors.background,
+                    titleColor: themeColors.text,
+                    bodyColor: themeColors.text,
+                    borderColor: themeColors.grid,
+                    borderWidth: 1
                 }
             },
             scales: {
-                x: {
+                y: {
+                    beginAtZero: true,
                     grid: {
-                        color: isDarkMode ? '#4e4e5e' : '#e0e0e0'
+                        color: themeColors.grid,
+                        borderColor: themeColors.grid
                     },
                     ticks: {
-                        color: isDarkMode ? '#fffffe' : '#333333'
+                        color: themeColors.text,
+                        font: {
+                            weight: '500'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'CTSS',
+                        color: themeColors.text,
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
                     }
                 },
-                y: {
+                x: {
+                    type: 'time',
+                    time: {
+                        parser: 'yyyy-MM-dd',
+                        unit: 'day',
+                        tooltipFormat: 'MMM d, yyyy',
+                        displayFormats: {
+                            day: 'MMM d'
+                        }
+                    },
                     grid: {
-                        color: isDarkMode ? '#4e4e5e' : '#e0e0e0'
+                        color: themeColors.grid,
+                        borderColor: themeColors.grid
                     },
                     ticks: {
-                        color: isDarkMode ? '#fffffe' : '#333333'
+                        color: themeColors.text,
+                        maxRotation: 45,
+                        minRotation: 45,
+                        font: {
+                            weight: '500'
+                        }
                     }
                 }
             }
         }
     });
+    updateChart();
 }
 
+async function updateChart() {
+    try {
+        const response = await fetch('/api/historical-data/bouldering');
+        const data = await response.json();
+        
+        // Convert dates to JavaScript Date objects
+        chart.data.labels = data.map(item => {
+            // If your dates are in string format, parse them
+            const dateParts = item.date.split('-');
+            return new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+        });
+        
+        chart.data.datasets[0].data = data.map(item => item.total_ctss);
+        chart.update();
+    } catch (error) {
+        console.error('Error updating chart:', error);
+    }
+}
+
+function addBoulder() {
+    const gradeSelect = document.getElementById('boulder-grade');
+    const attemptsInput = document.getElementById('boulder-attempts');
+    
+    if (!gradeSelect.value || !attemptsInput.value) {
+        alert('Please select a grade and enter number of attempts');
+        return;
+    }
+
+    const grade = parseInt(gradeSelect.value);
+    const attempts = parseInt(attemptsInput.value);
+    
+    // Add to local array
+    boulders.push({ grade, attempts });
+    
+    // Update UI table
+    const tableBody = document.getElementById('added-boulders');
+    const newRow = document.createElement('tr');
+    
+    newRow.innerHTML = `
+        <td>${boulders.length}</td>
+        <td>V${grade}</td>
+        <td>${attempts}</td>
+        <td class="ctss-cell">Calculating...</td>
+    `;
+
+    tableBody.appendChild(newRow);
+    
+    // Clear inputs
+    gradeSelect.value = '';
+    attemptsInput.value = '';
+}
+
+async function submitBoulderingSession() {
+    const maxGrade = document.getElementById('max-boulder-grade').value;
+    const durationMinutes = document.getElementById('session-duration').value;
+    // const sessionDate = document.getElementById('session-date').value || new Date().toISOString().split('T')[0];
+    const sessionDate = document.getElementById('session-date').value || getUTCDateString(); // Use UTC helper
+
+    
+    if (!maxGrade || !durationMinutes || boulders.length === 0) {
+        alert('Please fill all required fields and add at least one boulder');
+        return;
+    }
+
+    try {
+        // Aggregate attempts by grade
+        const attempts = {};
+        boulders.forEach(b => {
+            attempts[b.grade] = (attempts[b.grade] || 0) + b.attempts;
+        });
+
+        const sessionData = {
+            type: 'bouldering',
+            max_grade: parseInt(maxGrade),
+            attempts: attempts,
+            duration_hours: parseFloat(durationMinutes) / 60,
+            date: sessionDate
+        };
+
+        console.log('Submitting with UTC date:', sessionDate);
+
+        const response = await fetch('/api/submit-session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(sessionData)
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+            // Update UI with calculated values
+            document.getElementById('bouldering-score').textContent = result.total_ctss.toFixed(1);
+            
+            // Update CTSS cells in table
+            document.querySelectorAll('.ctss-cell').forEach((cell, index) => {
+                const grade = boulders[index].grade;
+                const gradeScore = ((grade + 1) / (maxGrade + 1)) ** 2 * boulders[index].attempts;
+                cell.textContent = gradeScore.toFixed(1);
+            });
+
+            // Clear form
+            boulders = [];
+            document.getElementById('added-boulders').innerHTML = '';
+            document.getElementById('max-boulder-grade').value = '';
+            document.getElementById('session-duration').value = '';
+            
+            // Update chart
+            await updateChart();
+            
+            // Update training load display
+            loadTrainingData();
+            
+            alert('Session saved successfully!');
+        } else {
+            alert(`Error: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error submitting session:', error);
+        alert('Failed to save session. Please try again.');
+    }
+}
+
+// Existing utility functions
+function undoBoulder() {
+    if (boulders.length > 0) {
+        boulders.pop();
+        const tableBody = document.getElementById('added-boulders');
+        tableBody.removeChild(tableBody.lastElementChild);
+    }
+}
+
+function clearBoulders() {
+    boulders = [];
+    document.getElementById('added-boulders').innerHTML = '';
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.getElementById('session-date');
+    if (!dateInput.value) {
+        dateInput.value = getUTCDateString(); // Set to UTC date instead of local
+    }
+    initializeChart();
+    loadTrainingData();
+});
+
+// Update the loadTrainingData function to use UTC
+async function loadTrainingData() {
+    try {
+        const response = await fetch(`/api/daily-stress?date=${getUTCDateString()}`);
+        const data = await response.json();
+        
+        if (data.ctl !== undefined) {
+            console.log('UTC Training Load:', data);
+            // Update UI elements as needed
+        }
+    } catch (error) {
+        console.error('Error loading training data:', error);
+    }
+}
