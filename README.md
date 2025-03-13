@@ -105,6 +105,7 @@ Access the site in your browser at localhost:5000
 ## Contributing
 
 Contributions are welcome! Please fork the repository and submit a pull request with your changes.
+You are also welcome to contribute via the [github discussions](https://github.com/rtkaratekid/ctss_calculator/discussions)
 
 ## License
 
