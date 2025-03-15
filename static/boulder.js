@@ -157,9 +157,6 @@ function addBoulder() {
 
     tableBody.appendChild(newRow);
     
-    // Clear inputs
-    gradeSelect.value = '';
-    attemptsInput.value = '';
 }
 
 async function submitBoulderingSession() {
@@ -214,9 +211,10 @@ async function submitBoulderingSession() {
 
             // Clear form
             boulders = [];
-            document.getElementById('added-boulders').innerHTML = '';
             document.getElementById('max-boulder-grade').value = '';
             document.getElementById('session-duration').value = '';
+            document.getElementById('boulder-grade').value = '';
+            document.getElementById('boulder-attempts').value = '';
             
             // Update chart
             await updateChart();

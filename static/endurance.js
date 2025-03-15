@@ -72,10 +72,6 @@ function addEndurance() {
     `;
 
     tableBody.appendChild(newRow);
-    
-    // Clear inputs
-    gradeSelect.value = '';
-    durationInput.value = '';
 }
 
 async function submitEnduranceSession() {
@@ -126,6 +122,9 @@ async function submitEnduranceSession() {
 
             // Keep routes visible (don't clear table)
             alert('Session saved successfully!');
+            enduranceRoutes = [];
+            document.getElementById('endurance-grade').value = '';
+            document.getElementById('endurance-duration').value = '';
             
             // Update chart and training load
             await updateChart();

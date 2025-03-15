@@ -88,10 +88,17 @@ class TrainingLoad:
             self.tsb = 0.0
             return
 
+
         # Parse dates as UTC datetimes
         prev_date = datetime.strptime(previous_load.date, '%Y-%m-%d').replace(tzinfo=timezone.utc)
         current_date = datetime.strptime(self.date, '%Y-%m-%d').replace(tzinfo=timezone.utc)
         
+        if prev_date == current_date and previous_load.daily_stress == self.daily_stress:
+            self.ctl = previous_load.ctl
+            self.atl = previous_load.atl
+            self.tsb = previous_load.tsb
+            return
+
         # Calculate precise days elapsed
         # delta = current_date - prev_date
         # exact_days = delta.total_seconds() / (3600 * 24)
@@ -119,6 +126,7 @@ class TrainingLoad:
         - Previous Date: {previous_load.date} (UTC)
         - Current Date:  {self.date} (UTC)
         - Full Days Elapsed: {full_days_elapsed}
+        - Previous Stress: {previous_load.daily_stress:.1f} → New Stress: {self.daily_stress:.1f}
         - Previous CTL: {previous_load.ctl:.1f} → New CTL: {self.ctl:.1f}
         - Previous ATL: {previous_load.atl:.1f} → New ATL: {self.atl:.1f}
         """)

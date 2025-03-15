@@ -74,12 +74,6 @@ function addHangboard() {
     `;
 
     tableBody.appendChild(newRow);
-    
-    // Clear inputs
-    document.getElementById('hangboard-grip').value = '';
-    document.getElementById('hangboard-intensity').value = '';
-    document.getElementById('hangboard-reps').value = '';
-    document.getElementById('hangboard-seconds').value = '';
 }
 
 async function submitHangboardSession() {
@@ -127,6 +121,13 @@ async function submitHangboardSession() {
             });
 
             alert('Session saved successfully!');
+            hangboardSets = [];
+            document.getElementById('hangboard-grip').value = '';
+            document.getElementById('hangboard-intensity').value = '';
+            document.getElementById('hangboard-reps').value = '';
+            document.getElementById('hangboard-seconds').value = '';
+
+
             await updateChart();
             loadTrainingData();
         } else {
