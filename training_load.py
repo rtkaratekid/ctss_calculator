@@ -4,6 +4,36 @@ import json
 import sqlite3
 from typing import Optional, List, Dict
 
+def calculate_ctl(last_ctl: float, last_ctl_date: datetime, current_date: str, daily_stress: float) -> float:
+
+        # Parse dates as UTC datetimes
+        current_date = datetime.strptime(current_date, '%Y-%m-%d')
+        
+        # Calculate precise days elapsed
+        delta = current_date - last_ctl_date
+        full_days_elapsed = max(delta.days - 1, 0)
+
+        # Apply decay only for full days
+        ctl = last_ctl * (29/30) ** full_days_elapsed
+
+        # Add today's stress
+        ctl = ctl * (29/30) + daily_stress * (1/30)
+
+        return round(ctl, 2)
+
+def calculate_atl(last_atl: float, last_atl_date: datetime, current_date: str, daily_stress: float) -> float:
+    # Parse dates as UTC datetimes
+    current_date = datetime.strptime(current_date, '%Y-%m-%d') 
+
+    # Calculate precise days elapsed
+    delta = current_date - last_atl_date
+    full_days_elapsed = max(delta.days - 1, 0)
+
+    # Apply decay for full days
+    atl = last_atl * (6/7) ** full_days_elapsed
+    atl = atl * (6/7) + daily_stress * (1/7)
+    return atl
+
 class TrainingLoad:
     def __init__(self, date: str, daily_stress: float, ctl: float, atl: float, tsb: float):
         self.date = date
@@ -29,6 +59,12 @@ class TrainingLoad:
     def new(cls) -> 'TrainingLoad':
         date = datetime.now().strftime('%Y-%m-%d')
         return cls(date, 0.0, 0.0, 0.0, 0.0)
+
+    @classmethod
+    def from_row(cls, row: tuple) -> 'TrainingLoad':
+        """Create a TrainingLoad instance from a database row"""
+        date, daily_stress, ctl, atl, tsb = row
+        return cls(date, daily_stress, ctl, atl, tsb)
 
     def save(self, cursor: sqlite3.Cursor):
         # Add date validation
@@ -154,6 +190,12 @@ class Session:
             'total_ctss': round(self.total_ctss, 1),
             'data': self.data
         }
+    
+    @classmethod
+    def from_row(cls, row: tuple) -> 'Session':
+        """Create a Session instance from a database row"""
+        id, session_type, date, total_ctss, data = row
+        return cls(session_type, date, json.loads(data))
 
     def save(self, cursor: sqlite3.Cursor):
         cursor.execute('''
@@ -168,7 +210,7 @@ class Session:
 
     def calculate_ctss(self):
         """Calculate session-specific CTSS based on type"""
-        print(f"Calculating CTSS for {self.session_type} session")
+        # print(f"Calculating CTSS for {self.session_type} session")
         if self.session_type == 'bouldering':
             self._calculate_bouldering_ctss()
         elif self.session_type == 'endurance':
@@ -179,48 +221,136 @@ class Session:
             raise ValueError(f"Invalid session type: {self.session_type}")
 
     def _calculate_bouldering_ctss(self):
-        print('Calculating bouldering CTSS')
-        """Bouldering CSS formula implementation"""
-        max_grade = int(self.data['max_grade'])  # Convert to integer
+        """Final tuned formula"""
+        max_grade = int(self.data['max_grade'])
         attempts = self.data['attempts']
-        duration = float(self.data['duration_hours'])  # Ensure float type
-
-
-        intensity_sum = sum(
-            ((int(grade) + 1) / (max_grade + 1)) ** 2 * count
-            for grade, count in attempts.items()
-        )
+        duration = max(float(self.data['duration_hours']), 0.25)
         
-        total_attempts = sum(int(count) for count in attempts.values())
-        self.total_ctss = intensity_sum * (total_attempts / duration)
-        # total_attempts = sum(attempts.values())
-        # self.total_ctss = intensity_sum * (total_attempts / duration)
-        print(f"Total CTSS: {self.total_ctss:.1f}")
+        # Adjusted intensity curve
+        intensity_score = 0.0
+        for grade, count in attempts.items():
+            int_grade = int(grade)
+            grade_ratio = (int_grade + 1) / (max_grade + 2)
+            intensity_score += (grade_ratio ** 2.4) * int(count)  # Increased from 2.2
+        
+        # Volume balance
+        volume_score = sum(int(c) for c in attempts.values()) ** 0.65  # From 0.6
+        
+        # Duration adjustment
+        duration_factor = duration ** 0.3  # Reduced from 0.35
+        
+        self.total_ctss = (intensity_score * volume_score) / duration_factor * 3.8  # From 3.2
+
+    # def _calculate_bouldering_ctss(self):
+    #     print('Calculating bouldering CTSS')
+    #     """Bouldering CSS formula implementation"""
+    #     max_grade = int(self.data['max_grade'])  # Convert to integer
+    #     attempts = self.data['attempts']
+    #     duration = float(self.data['duration_hours'])  # Ensure float type
+
+
+    #     intensity_sum = sum(
+    #         ((int(grade) + 1) / (max_grade + 1)) ** 2 * count
+    #         for grade, count in attempts.items()
+    #     )
+        
+    #     total_attempts = sum(int(count) for count in attempts.values())
+    #     self.total_ctss = intensity_sum * (total_attempts / duration)
+    #     print(f"Total CTSS: {self.total_ctss:.1f}")
 
     def _calculate_endurance_ctss(self):
-        """Endurance ECSS formula implementation"""
+        """For volume-focused aerobic endurance sessions"""
         max_grade = float(self.data['max_grade'])
         routes = self.data['routes']
         session_duration = float(self.data['duration_hours'])
-
-        intensity_time = 0.0
-        total_climbing_time = 0.0
+        
+        total_time = 0.0
+        intensity_factor = 0.0
         
         for route in routes:
-            # Convert values to floats from JSON numbers/strings
             grade = float(route['grade'])
-            time_minutes = float(route['time'])  # Time is in minutes from client
+            minutes = float(route['time'])
+            hours = minutes / 60
             
-            # Convert minutes to hours for calculations
-            time_hours = time_minutes / 60
-            
-            intensity_time += (grade / max_grade) ** 2 * time_hours
-            total_climbing_time += time_hours
+            # Volume-focused calculation
+            intensity_ratio = grade / max_grade
+            total_time += hours
+            intensity_factor += (intensity_ratio ** 1.3) * hours  # Mild intensity weighting
+        
+        # Volume dominates with duration normalization
+        self.total_ctss = (total_time ** 1.2) * (intensity_factor ** 0.7) / (session_duration ** 0.5) * 25
 
-        self.total_ctss = 100 * intensity_time * (total_climbing_time / session_duration)
-        print(f"Total ECTSS: {self.total_ctss:.1f}")
+    # def _calculate_endurance_ctss(self):
+    #     """Endurance ECSS formula implementation"""
+    #     max_grade = float(self.data['max_grade'])
+    #     routes = self.data['routes']
+    #     session_duration = float(self.data['duration_hours'])
+
+    #     intensity_time = 0.0
+    #     total_climbing_time = 0.0
+        
+    #     for route in routes:
+    #         # Convert values to floats from JSON numbers/strings
+    #         grade = float(route['grade'])
+    #         time_minutes = float(route['time'])  # Time is in minutes from client
+            
+    #         # Convert minutes to hours for calculations
+    #         time_hours = time_minutes / 60
+            
+    #         intensity_time += (grade / max_grade) ** 2 * time_hours
+    #         total_climbing_time += time_hours
+
+    #     self.total_ctss = 100 * intensity_time * (total_climbing_time / session_duration)
+    #     print(f"Total ECTSS: {self.total_ctss:.1f}")
+
+    def _calculate_power_endurance_ctss(self):
+        """For intensity-focused anaerobic power endurance"""
+        max_grade = float(self.data['max_grade'])
+        routes = self.data['routes']
+        session_duration = float(self.data['duration_hours'])
+        
+        intensity_sum = 0.0
+        fatigue_multiplier = 1.0
+        consecutive_hard_routes = 0
+        
+        for i, route in enumerate(routes):
+            grade = float(route['grade'])
+            minutes = float(route['time'])
+            hours = minutes / 60
+            intensity_ratio = grade / max_grade
+            
+            # Intensity-focused calculation with fatigue factor
+            if intensity_ratio > 0.8:  # Considered "hard"
+                consecutive_hard_routes += 1
+                fatigue_multiplier *= 1 + (0.1 * consecutive_hard_routes)
+            else:
+                consecutive_hard_routes = 0
+                
+            intensity_sum += (intensity_ratio ** 3.5) * hours * fatigue_multiplier
+        
+        # Time under tension with intensity emphasis
+        self.total_ctss = (intensity_sum ** 1.5) / (session_duration ** 0.3) * 40
 
     def _calculate_hangboard_ctss(self):
+        """Final adjusted formula"""
+        sets = self.data['sets']
+        duration = float(self.data['duration_hours'])
+        
+        intensity_tut = sum(
+            (set['intensity'] ** 4.2) *  # Reduced from 5
+            (set['reps'] ** 0.7) *       # Increased from 0.6
+            (set['secondsPerRep'] / 60)
+            for set in sets
+        )
+        
+        volume = sum(
+            set['reps'] * (set['secondsPerRep'] / 60)
+            for set in sets
+        )
+        
+        self.total_ctss = (intensity_tut * (volume ** 0.7)) / (duration ** 0.4) * 12  # Increased from 12
+
+    def _old_calculate_hangboard_ctss(self):
         """Hangboard HSS formula implementation"""
         scaling_factor = 1  # Use the established scaling factor
         sets = self.data['sets']

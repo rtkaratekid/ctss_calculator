@@ -1,8 +1,11 @@
+#!/usr/bin/python3
 from flask import Flask, request, jsonify, render_template, send_from_directory
 import sqlite3
 import os
 from datetime import datetime
 from training_load import TrainingLoad, Session, TrainingLoadManager
+from user import User
+import uuid
 
 app = Flask(__name__)
 DATABASE = 'training_data.db'
@@ -26,6 +29,20 @@ def init_db():
                 tsb REAL
             )
         ''')
+
+        # drop the users table if it exists
+        # c.execute('DROP TABLE IF EXISTS users')
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY,
+                name TEXT,
+                email TEXT,
+                password TEXT,
+                bouldering_max_grade REAL,
+                route_max_grade REAL
+            )
+        ''')
+        
         conn.commit()
 
 init_db()
@@ -108,6 +125,47 @@ def get_daily_stress():
     
     except Exception as e:
         return jsonify({'error': 'Server error'}), 500
+
+"""
+json sent must be formatted as follows:
+{
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "password": "password"
+}
+"""
+@app.route('/api/create-user', methods=['POST'])
+def create_user():
+    with sqlite3.connect(DATABASE) as conn:
+        data = request.json
+        try:
+            print(f"data: {data}")  
+            # create unique id for user
+            user_id = str(uuid.uuid4())
+            password = data['hashedPassword']
+            user = User(user_id, data['name'], data['email'], password)
+            user.save(conn.cursor())
+            conn.commit()
+            return jsonify({'success': True, 'user': user.to_dict()}), 200
+        except Exception as e:
+            print(f"Error creating user: {e}")
+            return jsonify({'error': str(e)}), 500
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    with sqlite3.connect(DATABASE) as conn:
+        data = request.json
+        try:
+            print(f"data: {data}")
+            user = User.get_by_email(conn.cursor(), data['email'])
+            if user and user.password == data['hashedPassword']:
+                return jsonify({'success': True, 'user': user.to_dict()}), 200
+            else:
+                return jsonify({'success': False, 'error': 'Invalid email or password'}), 401
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+            
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -5,20 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTSS Calculator | Climbing Training Stress Score</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        /* Non-conflicting enhancements */
+        .header__wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
 
+        .header__title-container {
+            flex: 1 1 70%;
+        }
+
+        .header__user-container {
+            flex: 1 1 25%;
+            text-align: center;
+            padding: 0.5rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+
+        .menu-container {
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .menu-item {
+            width: 100%;
+            max-width: 300px;
+            margin: 0.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .header__wrapper {
+                flex-direction: column;
+            }
+            
+            .header__user-container {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .menu-item {
+                max-width: none;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="header">
-        <h1>Climbing Training Stress Score Calculator</h1>
-        <p>Choose your session</p>
+        <div class="header__wrapper">
+            <div class="header__title-container">
+                <h1>Climbing Training Stress Score Calculator</h1>
+                <div class="header__user-container"></div>
+                <!-- <p>Choose your session</p> -->
+            </div>
+        </div>
     </div>
-    <!-- TODO add some charts and stuff so you can see trends over time -->
-    <!-- TODO make the TSB cell red or green on a gradient depending on readiness -->
     <div id="training-load-container"></div>
+    <div style="height: 300px; margin-top: 2rem;">
+        <canvas id="ctl-chart"></canvas>
+    </div>
     <div class="menu-container">
         <a href="bouldering.html" class="menu-item">
             <i class="fas fa-mountain"></i>
@@ -37,15 +91,11 @@
             <span>Toggle Dark Mode</span>
         </a>
     </div>
-    <div style="height: 300px;">
-        <canvas id="ctl-chart"></canvas>
-    </div>
-    <script src="{{ url_for('static', filename='training_load.js') }}"></script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
     <script>
         document.getElementById('darkModeToggle').addEventListener('click', function() {
             document.body.classList.toggle('dark-mode');
             localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-
             createCtlChart();
         });
         

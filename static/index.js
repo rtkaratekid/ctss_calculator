@@ -1,6 +1,36 @@
 let trainingLoadHistory = [];
 let ctlChart = null;
 
+// do login or signup logic here
+function loginOrSignup() {
+    const loginButton = document.getElementById('loginButton');
+    const signupButton = document.getElementById('signupButton');
+    loginButton.addEventListener('click', () => {
+        window.location.href = 'login.html';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userContainer = document.querySelector('.header__user-container');
+
+    if (user) {
+        userContainer.innerHTML = `
+            <div class="user-info">
+                <p>Welcome, <strong>${user.name}</strong></p>
+                <p>Bouldering: ${user.bouldering_max_grade || 'Not set'}</p>
+                <p>Routes: ${user.route_max_grade || 'Not set'}</p>
+            </div>
+        `;
+    } else {
+        userContainer.innerHTML = `
+            <a href="login.html" class="menu-item" style="padding: 0.5rem 1rem; display: inline-block;">
+                <i class="fas fa-user"></i>
+                <span>Login / Sign Up</span>
+            </a>
+        `;
+    }
+});
 
 async function fetchTrainingLoad() {
     try {
@@ -38,11 +68,24 @@ async function updateDisplay() {
 }
 
 function displayTrainingLoad(load) {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) return;
+
     const container = document.getElementById('training-load-container');
     if (!container) return;
 
+    // Todo if tsb is negative, show it in scales of red, if positive in green
     const tsbClass = load.tsb >= 0 ? 'positive-tsb' : 'negative-tsb';
-    
+    const tsbCellColor = load.tsb === 0 
+        ? '#ffffff' // White for 0
+        : load.tsb > 0 
+            ? `rgb(${255 - Math.min(255, load.tsb * 10)}, 255, ${255 - Math.min(255, load.tsb * 10)})` // Darker green for higher positive values
+            : `rgb(255, ${255 + Math.max(-255, load.tsb * 10)}, ${255 + Math.max(-255, load.tsb * 10)})`; // Darker red for lower negative values
+
+    const tsbTextColor = load.tsb >= 0 
+        ? (255 - Math.min(255, load.tsb * 10) < 128 ? '#ffffff' : '#000000') // White for darker green, black for lighter green
+        : (255 + Math.max(-255, load.tsb * 10) < 128 ? '#ffffff' : '#000000'); // White for darker red, black for lighter red
+   
     container.innerHTML = `
         <table id="training-load-table">
             <tr>
@@ -57,13 +100,15 @@ function displayTrainingLoad(load) {
                 <td>${load.daily_stress.toFixed(1)}</td>
                 <td>${load.ctl.toFixed(1)}</td>
                 <td>${load.atl.toFixed(1)}</td>
-                <td class="${tsbClass}">${load.tsb.toFixed(1)}</td>
+                <td style="background-color: ${tsbCellColor}; color: ${tsbTextColor}" class="${tsbClass}">${load.tsb.toFixed(1)}</td>
             </tr>
         </table>
     `;
 }
 
 async function createCtlChart() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) return;
     try {
 
         if (ctlChart) {
