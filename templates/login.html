@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTSS Calculator | Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        /* Login-specific styles - higher specificity to override main.css */
+        body.login-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-color: var(--bg-color);
+            max-width: none !important; /* Override the 1000px limit from main.css */
+            margin: 0 !important; /* Remove the auto margins from main.css */
+        }
+    
+        .login-page .login-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            width: 100%;
+            min-width: 380px;
+            max-width: 420px;
+            padding: 2.5rem 3rem;
+            margin: 0 auto; /* Center the card */
+        }
+    
+        /* Reset form styles specifically for login page */
+        .login-page form {
+            width: 100% !important;
+            max-width: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            gap: 0 !important;
+        }
+    
+        .login-page .form-container {
+            width: 100%;
+            margin-top: 1.5rem;
+        }
+    
+        .login-page .form-group {
+            margin-bottom: 1.5rem;
+            width: 100%;
+        }
+    
+        .login-page .form-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+    
+        .login-page .form-group input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.9rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+    
+        .login-page .btn-primary {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.9rem;
+            margin-top: 0.5rem;
+        }
+    
+        /* Tab styles */
+        .login-page .tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+    
+        .login-page .tab {
+            flex: 1;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            text-align: center;
+        }
+    
+        .login-page .tab.active {
+            border-bottom: 3px solid var(--primary-color);
+            font-weight: 500;
+        }
+    
+        /* Dark mode specific overrides */
+        .dark-mode .login-page .form-group input {
+            background: var(--input-bg-dark);
+            border-color: var(--border-color-dark);
+        }
+    
+        /* Add these variables if not already in your CSS */
+        :root {
+            --primary-color: #3498db;
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-color: #bdc3c7;
+            --input-bg: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+        }
+    
+        .dark-mode {
+            --primary-color: #6b46c1;
+            --bg-color: #0f0e17;
+            --card-bg: #1e1e2e;
+            --text-color: #fffffe;
+            --border-color: #4e4e5e;
+            --input-bg: #2e2e3e;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+                /* Add to your login-specific CSS */
+        .login-page .auth-form {
+            display: block; /* Start as visible by default */
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .login-page .auth-form.hidden {
+            display: none !important; /* Force hide when hidden class is applied */
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="login-page">
+    <button class="dark-mode-toggle">
+        <i class="fas fa-moon"></i>
+    </button>
+    <a href="index.html" class="fab menu-button">
+        <i class="fas fa-home"></i>
+    </a>
+
+    <div class="login-card">
+        <div class="logo">
+            <i class="fas fa-mountain"></i>
+        </div>
+        <h1>Climbing Training Stress Score</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('login')">Login</div>
+            <div class="tab" onclick="switchTab('signup')">Sign Up</div>
+        </div>
+        
+        <div class="form-container">
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </div>
+                <button type="submit" class="btn-primary">Login</button>
+            </form>
+            
+            <!-- Signup Form -->
+            <form id="signupForm" class="auth-form hidden">
+                <div class="form-group">
+                    <label for="signupName">Name</label>
+                    <input type="text" id="signupName" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" placeholder="Create a password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
+                </div>
+                <button type="submit" class="btn-primary">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='login.js') }}"></script>
+</body>
+</html>
