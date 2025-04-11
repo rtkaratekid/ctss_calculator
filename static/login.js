@@ -1,10 +1,14 @@
-// Utility function for password hashing
 async function hashPassword(password) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    if (window.crypto && crypto.subtle) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } else {
+        // Fallback to crypto-js
+        return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
+    }
 }
 
 // Handle login form submission
@@ -36,7 +40,7 @@ async function handleLogin(event) {
         }
     } catch (error) {
         console.error('Login error:', error);
-        alert('Error during login. Please try again later.');
+        alert('Error during login');
     }
 }
 

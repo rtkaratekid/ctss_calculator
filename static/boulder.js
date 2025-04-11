@@ -1,5 +1,6 @@
 let boulders = [];
 let chart = null;
+let volumeChart = null;
 
 // Add UTC date helper function at the top
 function getUTCDateString(date = new Date()) {
@@ -8,6 +9,7 @@ function getUTCDateString(date = new Date()) {
 
 function initializeChart() {
     const ctx = document.getElementById('ctssChart').getContext('2d');
+    const volumeCtx = document.getElementById('boulderingVolumesChart').getContext('2d');
     const isDarkMode = document.body.classList.contains('dark-mode');
     
     // Theme-adaptive colors
@@ -20,6 +22,115 @@ function initializeChart() {
 
     // Destroy existing chart if it exists
     if (chart) chart.destroy();
+    if (volumeChart) volumeChart.destroy();
+    
+    const percentagePlugin = {
+        id: 'percentagePlugin',
+        afterDatasetsDraw(chart) {
+            const { ctx, data, chartArea: { top } } = chart;
+            ctx.save();
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = chart.options.plugins.legend.labels.color;
+    
+            const totalAttempts = data.datasets[0].data.reduce((sum, value) => sum + value, 0);
+    
+            data.datasets[0].data.forEach((value, index) => {
+                const percentage = ((value / totalAttempts) * 100).toFixed(0) + '%';
+                const bar = chart.getDatasetMeta(0).data[index];
+                const x = bar.x;
+                const y = bar.y - 10; // Position above the bar
+                ctx.fillText(percentage, x, y);
+            });
+    
+            ctx.restore();
+        }
+    };
+    
+    volumeChart = new Chart(volumeCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Volume',
+                data: [],
+                backgroundColor: themeColors.line,
+                borderColor: themeColors.line,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: themeColors.text,
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: themeColors.background,
+                    titleColor: themeColors.text,
+                    bodyColor: themeColors.text,
+                    borderColor: themeColors.grid,
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: themeColors.grid,
+                        borderColor: themeColors.grid
+                    },
+                    ticks: {
+                        color: themeColors.text,
+                        font: {
+                            weight: '500'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Number of Attempts',
+                        color: themeColors.text,
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                x: {
+                    type: 'category',
+                    grid: {
+                        color: themeColors.grid,
+                        borderColor: themeColors.grid
+                    },
+                    ticks: {
+                        color: themeColors.text,
+                        maxRotation: 45,
+                        minRotation: 45,
+                        font: {
+                            weight: '500'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Problem Grade',
+                        color: themeColors.text,
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                }
+            }
+        },
+        plugins: [percentagePlugin]
+    });
+    updateVolumeChart();
 
     chart = new Chart(ctx, {
         type: 'line',
@@ -126,6 +237,81 @@ async function updateChart() {
         chart.update();
     } catch (error) {
         console.error('Error updating chart:', error);
+    }
+}
+
+async function updateVolumeChart() {
+    try {
+        const response = await fetch('/api/session-history/bouldering');
+        const data = await response.json();
+
+        // Gather the number of problems done at each grade
+        const gradeCounts = {};
+        data.forEach(item => {
+            const parsedData = JSON.parse(item.data);
+            if (parsedData.attempts) {
+                for (const [grade, attempts] of Object.entries(parsedData.attempts)) {
+                    gradeCounts[grade] = (gradeCounts[grade] || 0) + attempts;
+                }
+            }
+        });
+
+        // Prepare data for the chart
+        const labels = Object.keys(gradeCounts).map(grade => `V${grade}`);
+        const dataPoints = Object.values(gradeCounts);
+
+        // Define color palettes for light and dark modes
+        const lightModeColors = {
+            V0: '#3498db',  // Light Blue
+            V1: '#2ecc71',  // Green
+            V2: '#e74c3c',  // Red
+            V3: '#9b59b6',  // Purple
+            V4: '#f1c40f',  // Yellow
+            V5: '#e67e22',  // Orange
+            V6: '#1abc9c',  // Teal
+            V7: '#34495e',  // Dark Blue
+            V8: '#8e44ad',  // Dark Purple
+            V9: '#c0392b',  // Dark Red
+            V10: '#d35400', // Dark Orange
+            V11: '#27ae60', // Dark Green
+            V12: '#2980b9', // Medium Blue
+            V13: '#f39c12', // Gold
+            V14: '#16a085', // Aqua
+            V15: '#2c3e50'  // Navy
+        };
+
+        const darkModeColors = {
+            V0: '#5dade2',  // Lighter Blue
+            V1: '#58d68d',  // Lighter Green
+            V2: '#f1948a',  // Lighter Red
+            V3: '#af7ac5',  // Lighter Purple
+            V4: '#f9e79f',  // Lighter Yellow
+            V5: '#f5b041',  // Lighter Orange
+            V6: '#76d7c4',  // Lighter Teal
+            V7: '#566573',  // Lighter Dark Blue
+            V8: '#bb8fce',  // Lighter Dark Purple
+            V9: '#e6b0aa',  // Lighter Dark Red
+            V10: '#e59866', // Lighter Dark Orange
+            V11: '#82e0aa', // Lighter Dark Green
+            V12: '#85c1e9', // Lighter Medium Blue
+            V13: '#f8c471', // Lighter Gold
+            V14: '#48c9b0', // Lighter Aqua
+            V15: '#85929e'  // Lighter Navy
+        };
+
+        // Determine the current mode
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const gradeColors = isDarkMode ? darkModeColors : lightModeColors;
+
+        // Map colors to grades
+        const colors = labels.map(label => gradeColors[label] || '#bdc3c7'); // Default to gray if grade not found
+
+        volumeChart.data.labels = labels;
+        volumeChart.data.datasets[0].data = dataPoints;
+        volumeChart.data.datasets[0].backgroundColor = colors;
+        volumeChart.update();
+    } catch (error) {
+        console.error('Error updating volume chart:', error);
     }
 }
 

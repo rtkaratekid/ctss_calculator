@@ -2,7 +2,7 @@
 from flask import Flask, request, jsonify, render_template, send_from_directory
 import sqlite3
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from training_load import TrainingLoad, Session, TrainingLoadManager
 from user import User
 import uuid
@@ -98,11 +98,40 @@ def get_historical_data(session_type):
                 loads = [TrainingLoad.get_by_date(cursor, date).to_dict() for date in dates]
                 return jsonify(loads)
             
-            if session_type not in ['bouldering', 'endurance', 'hangboard']:
+            if session_type not in ['bouldering', 'endurance', 'hangboard', 'power_endurance']:
                 return jsonify({'error': 'Invalid session type'}), 400
                 
             cursor.execute('SELECT date, total_ctss FROM sessions WHERE type = ? ORDER BY date', (session_type,))
             return jsonify([{'date': row[0], 'total_ctss': row[1]} for row in cursor.fetchall()])
+    
+    except Exception as e:
+        return jsonify({'error': 'Server error'}), 500
+
+@app.route('/api/session-history/<session_type>')
+def get_session_history(session_type):
+    try:
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM sessions WHERE type = ? ORDER BY date', (session_type,))
+            rows = cursor.fetchall()
+            sessions = []
+            for row in rows:
+                session = {
+                    'id': row[0],
+                    'type': row[1],
+                    'date': row[2],
+                    'total_ctss': row[3],
+                    'data': row[4]
+                }
+                sessions.append(session)
+            if not sessions:
+                return jsonify({'error': 'No sessions found'}), 404
+            # Sort sessions by date
+            sessions.sort(key=lambda x: x['date'], reverse=True)
+            # Limit to sessions that happened in the last 12 months
+            twelve_months_ago = datetime.now() - timedelta(days=365)
+            sessions = [s for s in sessions if datetime.strptime(s['date'], '%Y-%m-%d') > twelve_months_ago]
+            return jsonify(sessions)
     
     except Exception as e:
         return jsonify({'error': 'Server error'}), 500

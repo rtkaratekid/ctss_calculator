@@ -119,10 +119,11 @@ async function createCtlChart() {
         const ctx = document.getElementById('ctl-chart').getContext('2d');
 
         // Fetch all historical data
-        const [bouldering, endurance, hangboard, trainingLoad] = await Promise.all([
+        const [bouldering, endurance, hangboard, powerEndurance, trainingLoad] = await Promise.all([
             fetchHistoricalData('bouldering'),
             fetchHistoricalData('endurance'),
             fetchHistoricalData('hangboard'),
+            fetchHistoricalData('power_endurance'),
             fetchHistoricalData('training_load')
         ]);
 
@@ -146,6 +147,12 @@ async function createCtlChart() {
                         label: 'Hangboard CTSS',
                         data: hangboard.map(i => ({ x: i.date, y: i.total_ctss })),
                         borderColor: isDarkMode ? '#ffd700' : '#9966ff',  // Changed to gold
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Power Endurance CTSS',
+                        data: powerEndurance.map(i => ({ x: i.date, y: i.total_ctss })),
+                        borderColor: isDarkMode ? '#ff3e3e' : '#ff4444', // Red colors
                         tension: 0.1
                     },
                     {

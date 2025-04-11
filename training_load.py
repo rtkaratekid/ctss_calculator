@@ -4,35 +4,59 @@ import json
 import sqlite3
 from typing import Optional, List, Dict
 
-def calculate_ctl(last_ctl: float, last_ctl_date: datetime, current_date: str, daily_stress: float) -> float:
+def calculate_ctl(last_ctl: float, last_ctl_date: datetime, current_date: str,
+                  daily_stress: float, days_since_start: int) -> float:
 
         # Parse dates as UTC datetimes
         current_date = datetime.strptime(current_date, '%Y-%m-%d')
         
         # Calculate precise days elapsed
         delta = current_date - last_ctl_date
+        # full_days_elapsed = max(delta.days - 1, 0)
         full_days_elapsed = max(delta.days - 1, 0)
 
+        # transition from 7 day decay to 30 day decay for new users
+        if days_since_start < 42:
+            ctl_decay = min(7+ days_since_start * (30/7)/35, 30)
+        else:
+            ctl_decay = 30
+
+        decay_factor = (ctl_decay - 1) / ctl_decay
+        ctl = last_ctl * (decay_factor ** full_days_elapsed)
+
         # Apply decay only for full days
-        ctl = last_ctl * (29/30) ** full_days_elapsed
+        # ctl = last_ctl * (29/30) ** full_days_elapsed
 
         # Add today's stress
-        ctl = ctl * (29/30) + daily_stress * (1/30)
+        # ctl = ctl * (29/30) + daily_stress * (1/30)
+        ctl = ctl * decay_factor + daily_stress * (1 - decay_factor)
 
         return round(ctl, 2)
 
-def calculate_atl(last_atl: float, last_atl_date: datetime, current_date: str, daily_stress: float) -> float:
+def calculate_atl(last_atl: float, last_atl_date: datetime, current_date: str,
+                  daily_stress: float, days_since_start: int) -> float:
     # Parse dates as UTC datetimes
     current_date = datetime.strptime(current_date, '%Y-%m-%d') 
 
     # Calculate precise days elapsed
     delta = current_date - last_atl_date
+    # full_days_elapsed = max(delta.days - 1, 0)
     full_days_elapsed = max(delta.days - 1, 0)
 
+    if days_since_start < 14:
+        # Transition from 2-day to 7-day decay
+        atl_decay = min(2 + days_since_start * (7-2)/12, 7)
+    else:
+        atl_decay = 7  # Standard 7-day decay
+
+    decay_factor = (atl_decay - 1) / atl_decay
+    atl = last_atl * (decay_factor ** full_days_elapsed)
+    atl = atl * decay_factor + daily_stress * (1 - decay_factor)
+
     # Apply decay for full days
-    atl = last_atl * (6/7) ** full_days_elapsed
-    atl = atl * (6/7) + daily_stress * (1/7)
-    return atl
+    # atl = last_atl * (6/7) ** full_days_elapsed
+    # atl = atl * (6/7) + daily_stress * (1/7)
+    return round(atl, 2)
 
 class TrainingLoad:
     def __init__(self, date: str, daily_stress: float, ctl: float, atl: float, tsb: float):
@@ -217,6 +241,8 @@ class Session:
             self._calculate_endurance_ctss()
         elif self.session_type == 'hangboard':
             self._calculate_hangboard_ctss()
+        elif self.session_type == 'power_endurance':
+            self._calculate_power_endurance_ctss()
         else:
             raise ValueError(f"Invalid session type: {self.session_type}")
 
@@ -315,18 +341,17 @@ class Session:
         
         for i, route in enumerate(routes):
             grade = float(route['grade'])
-            minutes = float(route['time'])
-            hours = minutes / 60
+            minutes = float(route['duration'])
             intensity_ratio = grade / max_grade
             
             # Intensity-focused calculation with fatigue factor
-            if intensity_ratio > 0.8:  # Considered "hard"
+            if intensity_ratio > 0.85:  # Considered "hard"
                 consecutive_hard_routes += 1
                 fatigue_multiplier *= 1 + (0.1 * consecutive_hard_routes)
             else:
                 consecutive_hard_routes = 0
                 
-            intensity_sum += (intensity_ratio ** 3.5) * hours * fatigue_multiplier
+            intensity_sum += (intensity_ratio ** 3.5) * minutes * fatigue_multiplier
         
         # Time under tension with intensity emphasis
         self.total_ctss = (intensity_sum ** 1.5) / (session_duration ** 0.3) * 40

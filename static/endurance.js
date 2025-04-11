@@ -1,44 +1,237 @@
 let enduranceRoutes = [];
 let chart = null;
+let gradeDurationChart = null;
 
 // Initialize Chart
 function initializeChart() {
     const ctx = document.getElementById('ctssChart').getContext('2d');
-    chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Endurance CTSS History',
-                data: [],
-                borderColor: '#2196F3',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
+    const gradeDurationCtx = document.getElementById('gradeDurationChart').getContext('2d');
+    const isDarkMode = document.body.classList.contains('dark-mode');
+
+    // Theme-adaptive colors
+    const themeColors = {
+        text: isDarkMode ? '#fffffe' : '#2c3e50',
+        grid: isDarkMode ? '#4e4e5e' : '#e0e0e0',
+        background: isDarkMode ? '#1e1e2e' : '#ffffff',
+        line: isDarkMode ? '#ff6ad5' : '#3498db'
+    };
+
+
+    // chart = new Chart(ctx, {
+    //     type: 'line',
+    //     data: {
+    //         labels: [],
+    //         datasets: [{
+    //             label: 'Endurance CTSS History',
+    //             data: [],
+    //             borderColor: '#2196F3',
+    //             tension: 0.1
+    //         }]
+    //     },
+    //     options: {
+    //         responsive: true,
+    //         maintainAspectRatio: false,
+    //         scales: {
+    //             y: {
+    //                 beginAtZero: true
+    //             }
+    //         }
+    //     }
+    // });
+     // Destroy existing charts if they exist
+     if (chart) chart.destroy();
+     if (gradeDurationChart) gradeDurationChart.destroy();
+ 
+     // Initialize CTSS History Chart
+     chart = new Chart(ctx, {
+         type: 'line',
+         data: {
+             labels: [],
+             datasets: [{
+                 label: 'Endurance CTSS History',
+                 data: [],
+                 borderColor: themeColors.line,
+                 tension: 0.1
+             }]
+         },
+         options: {
+             responsive: true,
+             maintainAspectRatio: false,
+             scales: {
+                 y: {
+                     beginAtZero: true,
+                     grid: {
+                         color: themeColors.grid
+                     },
+                     ticks: {
+                         color: themeColors.text
+                     }
+                 },
+                 x: {
+                     grid: {
+                         color: themeColors.grid
+                     },
+                     ticks: {
+                         color: themeColors.text
+                     }
+                 }
+             }
+         }
+     });
+ 
+     const percentagePlugin = {
+        id: 'percentagePlugin',
+        afterDatasetsDraw(chart) {
+            const { ctx, data, chartArea: { top } } = chart;
+            ctx.save();
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = chart.options.plugins.legend.labels.color;
+    
+            const totalDuration = data.datasets[0].data.reduce((sum, value) => sum + value, 0);
+    
+            data.datasets[0].data.forEach((value, index) => {
+                const percentage = ((value / totalDuration) * 100).toFixed(0) + '%';
+                const bar = chart.getDatasetMeta(0).data[index];
+                const x = bar.x;
+                const y = bar.y - 10; // Position above the bar
+                ctx.fillText(percentage, x, y);
+            });
+    
+            ctx.restore();
         }
-    });
+    };
+ 
+     // Initialize Grade vs Duration Chart
+     gradeDurationChart = new Chart(gradeDurationCtx, {
+         type: 'bar',
+         data: {
+             labels: [],
+             datasets: [{
+                 label: 'Total Duration (minutes)',
+                 data: [],
+                 backgroundColor: [],
+                 borderColor: themeColors.line,
+                 borderWidth: 1
+             }]
+         },
+         options: {
+             responsive: true,
+             maintainAspectRatio: false,
+             plugins: {
+                 legend: {
+                     labels: {
+                         color: themeColors.text,
+                         font: {
+                             weight: 'bold'
+                         }
+                     }
+                 },
+                 tooltip: {
+                     backgroundColor: themeColors.background,
+                     titleColor: themeColors.text,
+                     bodyColor: themeColors.text,
+                     borderColor: themeColors.grid,
+                     borderWidth: 1
+                 }
+             },
+             scales: {
+                 y: {
+                     beginAtZero: true,
+                     grid: {
+                         color: themeColors.grid
+                     },
+                     ticks: {
+                         color: themeColors.text
+                     },
+                     title: {
+                         display: true,
+                         text: 'Total Duration (minutes)',
+                         color: themeColors.text,
+                         font: {
+                             size: 14,
+                             weight: 'bold'
+                         }
+                     }
+                 },
+                 x: {
+                     type: 'category',
+                     grid: {
+                         color: themeColors.grid
+                     },
+                     ticks: {
+                         color: themeColors.text
+                     },
+                     title: {
+                         display: true,
+                         text: 'Grade',
+                         color: themeColors.text,
+                         font: {
+                             size: 14,
+                             weight: 'bold'
+                         }
+                     }
+                 }
+             }
+         },
+         plugins: [percentagePlugin]
+     });
+
     updateChart();
 }
 
-// Update chart with server data
 async function updateChart() {
     try {
+        // Update CTSS History Chart
         const response = await fetch('/api/historical-data/endurance');
         const data = await response.json();
-        
+
         chart.data.labels = data.map(item => item.date);
         chart.data.datasets[0].data = data.map(item => item.total_ctss);
         chart.update();
+
+        // Update Grade vs Duration Chart
+        const history_response = await fetch('/api/session-history/endurance');
+        const history_data = await history_response.json();
+        console.log(history_data);
+
+        const gradeDurationCounts = {};
+        history_data.forEach(item => {
+            const parsedData = JSON.parse(item.data);
+            parsedData.routes.forEach(route => {
+                gradeDurationCounts[route.grade] = (gradeDurationCounts[route.grade] || 0) + route.time;
+            });
+        });
+
+        const labels = Object.keys(gradeDurationCounts).map(grade => getYDSGrade(parseInt(grade)));
+        const dataPoints = Object.values(gradeDurationCounts);
+
+        // Define color palettes for light and dark modes
+        const lightModeColors = {
+            "5.10-": '#3498db', "5.10+": '#2ecc71', "5.11-": '#e74c3c', "5.11+": '#9b59b6',
+            "5.12-": '#f1c40f', "5.12+": '#e67e22', "5.13-": '#1abc9c', "5.13+": '#34495e',
+            "5.14-": '#8e44ad', "5.14+": '#c0392b'
+        };
+
+        const darkModeColors = {
+            "5.10-": '#5dade2', "5.10+": '#58d68d', "5.11-": '#f1948a', "5.11+": '#af7ac5',
+            "5.12-": '#f9e79f', "5.12+": '#f5b041', "5.13-": '#76d7c4', "5.13+": '#566573',
+            "5.14-": '#bb8fce', "5.14+": '#e6b0aa'
+        };
+
+        // Determine the current mode
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const gradeColors = isDarkMode ? darkModeColors : lightModeColors;
+
+        // Map colors to grades
+        const colors = labels.map(label => gradeColors[label] || '#bdc3c7'); // Default to gray if grade not found
+
+        gradeDurationChart.data.labels = labels;
+        gradeDurationChart.data.datasets[0].data = dataPoints;
+        gradeDurationChart.data.datasets[0].backgroundColor = colors;
+        gradeDurationChart.update();
     } catch (error) {
-        console.error('Error updating chart:', error);
+        console.error('Error updating charts:', error);
     }
 }
 
@@ -171,23 +364,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     initializeChart();
-    loadTrainingData();
+    // loadTrainingData();
 });
 
 // Load training load data
-async function loadTrainingData() {
-    try {
-        const response = await fetch('/api/daily-stress');
-        const data = await response.json();
+// async function loadTrainingData() {
+//     try {
+//         const response = await fetch('/api/daily-stress');
+//         const data = await response.json();
         
-        if (data.ctl !== undefined) {
-            // Update your training load display here
-            console.log('Current training load:', data);
-        }
-    } catch (error) {
-        console.error('Error loading training data:', error);
-    }
-}
+//         if (data.ctl !== undefined) {
+//             // Update your training load display here
+//             console.log('Current training load:', data);
+//         }
+//     } catch (error) {
+//         console.error('Error loading training data:', error);
+//     }
+// }
 // /********************************/
 // /* Endurance Session Functions */
 // /********************************/
